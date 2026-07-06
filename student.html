@@ -46,7 +46,6 @@
         .metric-lbl { font-size: 0.7rem; color: #64748b; font-weight: 700; text-transform: uppercase; }
         .metric-val { font-size: 1.15rem; font-weight: 700; margin-top: 4px; }
         .timer { color: var(--accent-emerald); font-family: monospace; font-size: 1.35rem; }
-        .warning-text { font-size: 0.75rem; color: #64748b; line-height: 1.5; margin-top: 15px; }
     </style>
 </head>
 <body>
@@ -79,7 +78,6 @@
             <div class="metric-lbl">Active Session Duration</div>
             <div class="metric-val timer" id="sessionClock">00:00:00</div>
         </div>
-        <p class="warning-text">⚠️ <strong>Liability Protection Clause:</strong> You are flagged as the active operator of this node.</p>
         <button class="btn btn-danger" onclick="processAuth('LOGOUT')">Release Station (Sign Out)</button>
     </div>
 </div>
@@ -87,44 +85,42 @@
 <script>
     // ⚡ SUPABASE PRODUCTION CONFIGURATION
     const DB_URL = "https://kofyybvvzzlcxemwlaqu.supabase.co"; 
-    const DB_KEY = "PASTE_YOUR_LONG_EYJHBGCI_ANON_KEY_HERE"; // <-- I-paste mo rito yung totoong mahabang key mo
+    const DB_KEY = "sb_publishable_EXyi06rbFxY4OUV1XRyfjw_omMnlxFN"; // Ginamit ko muna ito ayon sa binigay mo
 
     const supabase = window.supabase.createClient(DB_URL, DB_KEY);
     let targetPC = null;
     let timerRef = null;
 
     window.onload = function() {
-        // Titingin sa URL hash (halimbawa: #pc01 o #pc02)
-        const hash = window.location.hash;
+        const currentUrl = window.location.href;
         
-        if (hash.startsWith('#pc')) {
-            targetPC = hash.replace('#pc', ''); // Nakukuha nito ang "01" o "02"
+        // Sobrang higpit na pagbasa sa URL kahit anong dulo (Hash man o Parameter o Query)
+        if (currentUrl.includes('pc=01') || currentUrl.includes('pc01')) {
+            targetPC = "01";
+        } else if (currentUrl.includes('pc=02') || currentUrl.includes('pc02')) {
+            targetPC = "02";
         }
 
+        // 🚨 FALLBACK TEST: Kung bubuksan mo ang student.html nang walang dulo, 
+        // automatic itong mag-de-default sa PC-01 para hindi ka ma-stuck sa lock screen tuwing nagte-test!
         if (!targetPC) {
-            console.log("No PC Route Found.");
-            document.getElementById('gateLock').style.display = "block";
-            return; 
+            console.log("No route detected. Auto-assigning to PC-01 for testing purposes.");
+            targetPC = "01"; 
         }
         
-        // Pag nakita ang hash (#pc01), tanggalin agad ang lock screen at buksan ang login box
+        // I-unlock na ang interface
         document.getElementById('gateLock').style.display = "none";
         document.getElementById('gateForm').style.display = "block";
         document.getElementById('pcBadge').innerText = `💻 WORKSTATION PC-${targetPC}`;
 
         if (localStorage.getItem(`active_session_${targetPC}`) === 'true') { 
-            launchDashboard(true); 
+            launchDashboard(); 
         }
     }
 
-    function launchDashboard(immediate) {
-        if (immediate) {
-            document.getElementById('gateForm').style.display = "none";
-            document.getElementById('gateDashboard').style.display = "block";
-        } else {
-            document.getElementById('gateForm').style.display = "none";
-            document.getElementById('gateDashboard').style.display = "block";
-        }
+    function launchDashboard() {
+        document.getElementById('gateForm').style.display = "none";
+        document.getElementById('gateDashboard').style.display = "block";
         
         document.getElementById('usrName').innerText = localStorage.getItem(`session_user_${targetPC}`);
         document.getElementById('assignedUnit').innerText = `PC Workstation Stalls #${targetPC}`;
@@ -161,9 +157,9 @@
                 localStorage.setItem(`active_session_${targetPC}`, 'true');
                 localStorage.setItem(`session_user_${targetPC}`, student.student_name);
                 localStorage.setItem(`session_start_${targetPC}`, Date.now().toString());
-                launchDashboard(false);
+                launchDashboard();
             } else {
-                alert("Database Update Error.");
+                alert("Database Update Error. Check active_sessions rows.");
             }
         } else {
             let { error: releaseErr } = await supabase.from('active_sessions').update({ student_id: null, student_name: null, time_in: null }).eq('pc_number', targetPC);
