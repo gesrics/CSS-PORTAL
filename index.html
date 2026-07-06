@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNHS Computer Lab Portal</title>
+    <link rel="stylesheet" href="index.style.css">
+</head>
+<body>
+
+<header>
+    <h1>DNHS <span>Laboratory Portal</span></h1>
+    <p>Asset Accountability & Tracking Gateway</p>
+</header>
+
+<div class="container">
+    <a href="student.html" id="studentLink" class="portal-card">
+        <span class="icon">📲</span>
+        <h2>Student Terminal Gateway</h2>
+        <p class="desc">Scan the physical workstation QR code to authenticate ownership and request computer lab station deployment.</p>
+    </a>
+</div>
+
+<script>
+    window.onload = function() {
+        const currentUrl = window.location.href;
+        let pcData = "";
+        if (currentUrl.includes('pc=01') || currentUrl.includes('pc01')) { pcData = "?pc=01"; }
+        else if (currentUrl.includes('pc=02') || currentUrl.includes('pc02')) { pcData = "?pc=02"; }
+        
+        if (pcData) {
+            document.getElementById('studentLink').href = `student.html${pcData}`;
+        }
+    }
+</script>
+</body>
+</html>

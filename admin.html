@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DNHS Admin Control Room</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --dark-core: #060913; --neon-blue: #06b6d4; --neon-green: #10b981; }
+        body { background: var(--dark-core); color: #fff; font-family: system-ui, sans-serif; padding: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto; }
+        .card { background: #0f1322; border: 1px solid #1e293b; padding: 20px; border-radius: 16px; text-align: center; }
+        .badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; margin-bottom: 15px; }
+        .vacant { background: #334155; color: #94a3b8; }
+        .occupied { background: rgba(16, 185, 129, 0.2); color: var(--neon-green); border: 1px solid var(--neon-green); }
+        h1 { text-align: center; margin-bottom: 30px; }
+    </style>
+</head>
+<body>
+
+<h1>DNHS Command Center</h1>
+<div class="grid" id="dashboard">
+    <div class="card" id="slot01">
+        <h3>PC-01</h3>
+        <div id="badge01" class="badge vacant">Vacant</div>
+        <div id="info01">Status: Ready</div>
+    </div>
+    <div class="card" id="slot02">
+        <h3>PC-02</h3>
+        <div id="badge02" class="badge vacant">Vacant</div>
+        <div id="info02">Status: Ready</div>
+    </div>
+</div>
+
+<script>
+    const DB_URL = "https://kofyybvvzzlcxemwlaqu.supabase.co"; 
+    const DB_KEY = "sb_publishable_EXyi06rbFxY4OUV1XRyfjw_omMnlxFN"; 
+    const supabase = window.supabase.createClient(DB_URL, DB_KEY);
+
+    async function fetchSessions() {
+        let { data: sessions } = await supabase.from('active_sessions').select('*');
+        sessions.forEach(s => {
+            const slot = document.getElementById(`slot${s.pc_number}`);
+            const badge = document.getElementById(`badge${s.pc_number}`);
+            const info = document.getElementById(`info${s.pc_number}`);
+            
+            if (s.student_id) {
+                badge.className = "badge occupied";
+                badge.innerText = "Occupied";
+                info.innerHTML = `<strong>${s.student_name}</strong><br>LRN: ${s.student_id}`;
+            } else {
+                badge.className = "badge vacant";
+                badge.innerText = "Vacant";
+                info.innerText = "Ready";
+            }
+        });
+    }
+
+    // I-refresh ang status bawat 5 segundo
+    setInterval(fetchSessions, 5000);
+    fetchSessions();
+</script>
+</body>
+</html>
