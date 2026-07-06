@@ -4,8 +4,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DNHS Terminal - Student</title>
-    <link rel="stylesheet" href="css/student.style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --glass-card: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --accent-cyan: #06b6d4;
+            --accent-emerald: #10b981;
+            --text-muted: #64748b;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background: var(--bg-dark); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; color: #fff; position: relative; overflow: hidden; }
+        body::before { content: ''; position: absolute; width: 300px; height: 300px; background: rgba(6, 182, 212, 0.15); border-radius: 50%; top: -50px; filter: blur(60px); }
+        
+        .glass-card { background: var(--glass-card); border: 1px solid var(--glass-border); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); width: 100%; max-width: 400px; padding: 40px 30px; border-radius: 28px; box-shadow: 0 25px 60px rgba(0,0,0,0.6); text-align: center; }
+        .brand { font-size: 0.75rem; color: var(--accent-cyan); font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px; }
+        h2 { font-size: 1.7rem; font-weight: 800; margin-bottom: 25px; letter-spacing: -0.5px; }
+        
+        .lock-icon { font-size: 3.5rem; margin-bottom: 15px; }
+        .lock-text { color: #94a3b8; font-size: 0.9rem; line-height: 1.6; }
+        
+        .station-badge { display: inline-flex; align-items: center; background: rgba(6, 182, 212, 0.08); border: 1px solid rgba(6, 182, 212, 0.25); color: var(--accent-cyan); font-weight: 700; padding: 10px 22px; border-radius: 14px; font-size: 0.9rem; margin-bottom: 30px; }
+        
+        .input-group { text-align: left; margin-bottom: 25px; }
+        label { display: block; font-size: 0.8rem; font-weight: 700; color: #94a3b8; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        input { width: 100%; padding: 16px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 14px; color: #fff; font-size: 1rem; outline: none; transition: all 0.2s; }
+        input:focus { border-color: var(--accent-cyan); box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.15); }
+        
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 14px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+        .btn-primary { background: var(--accent-cyan); color: #090d16; }
+        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); margin-top: 20px; }
+        .btn-danger:hover { background: #ef4444; color: #fff; }
+
+        .welcome-msg { font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; }
+        .welcome-msg span { color: var(--accent-cyan); }
+        
+        .metric-box { background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 16px; padding: 18px; margin-bottom: 15px; text-align: left; }
+        .metric-lbl { font-size: 0.7rem; color: #64748b; font-weight: 700; text-transform: uppercase; }
+        .metric-val { font-size: 1.15rem; font-weight: 700; margin-top: 4px; }
+        .timer { color: var(--accent-emerald); font-family: monospace; font-size: 1.35rem; }
+        .warning-text { font-size: 0.75rem; color: #64748b; line-height: 1.5; margin-top: 15px; }
+    </style>
 </head>
 <body>
 
@@ -42,6 +84,130 @@
     </div>
 </div>
 
-<script src="js/student.app.js"></script>
+<script>
+    // ⚡ SUPABASE PRODUCTION CONFIGURATION
+    const DB_URL = "https://kofyybvvzzlcxemwlaqu.supabase.co"; // Connected na sa project ID mo!
+    const DB_KEY = "PASTE_YOUR_LONG_EYJHBGCI_ANON_KEY_HERE"; // Palitan mo ng mahabang key mo rito.
+
+    const supabase = (typeof window.supabase !== 'undefined') ? window.supabase.createClient(DB_URL, DB_KEY) : null;
+
+    // Kunin ang parameter (?pc=01) nang maayos kahit anong browser view
+    const urlParams = new URLSearchParams(window.location.search || window.location.hash.substring(window.location.hash.indexOf('?')));
+    let targetPC = urlParams.get('pc');
+
+    let timerRef = null;
+
+    window.onload = function() {
+        if (!targetPC) {
+            console.log("No PC Parameter Detected.");
+            return; 
+        }
+        
+        // Pag may legal parameter, tanggalin agad ang lock screen para lumitaw ang modern registration panel
+        document.getElementById('gateLock').style.display = "none";
+        document.getElementById('gateForm').style.display = "block";
+        document.getElementById('pcBadge').innerText = `💻 WORKSTATION PC-${targetPC}`;
+
+        const lrnInput = document.getElementById('lrn');
+        if(lrnInput) {
+            lrnInput.focus();
+            lrnInput.addEventListener('keydown', (e) => {
+                if(e.key === 'Enter') processAuth('LOGIN');
+            });
+        }
+
+        if (localStorage.getItem(`active_session_${targetPC}`) === 'true') { 
+            launchDashboard(true); 
+        }
+    }
+
+    function switchView(hideId, showId) {
+        const hideEl = document.getElementById(hideId);
+        const showEl = document.getElementById(showId);
+        
+        hideEl.animate([
+            { opacity: 1, transform: 'translateY(0)' },
+            { opacity: 0, transform: 'translateY(-10px)' }
+        ], { duration: 250, easing: 'ease-in' }).onfinish = () => {
+            hideEl.style.display = "none";
+            showEl.style.display = "block";
+            showEl.animate([
+                { opacity: 0, transform: 'translateY(10px)' },
+                { opacity: 1, transform: 'translateY(0)' }
+            ], { duration: 300, easing: 'ease-out' });
+        };
+    }
+
+    function launchDashboard(immediate) {
+        if (immediate) {
+            document.getElementById('gateForm').style.display = "none";
+            document.getElementById('gateDashboard').style.display = "block";
+        } else {
+            switchView('gateForm', 'gateDashboard');
+        }
+        
+        document.getElementById('usrName').innerText = localStorage.getItem(`session_user_${targetPC}`);
+        document.getElementById('assignedUnit').innerText = `PC Workstation Stalls #${targetPC}`;
+        
+        clearInterval(timerRef);
+        const startTimestamp = parseInt(localStorage.getItem(`session_start_${targetPC}`), 10);
+        timerRef = setInterval(() => {
+            const delta = Math.floor((Date.now() - startTimestamp) / 1000);
+            const hrs = String(Math.floor(delta / 3600)).padStart(2, '0');
+            const mins = String(Math.floor((delta % 3600) / 60)).padStart(2, '0');
+            const secs = String(delta % 60).padStart(2, '0');
+            document.getElementById('sessionClock').innerText = `${hrs}:${mins}:${secs}`;
+        }, 1000);
+    }
+
+    async function processAuth(type) {
+        if (!supabase) {
+            alert("Database connection is uninitialized.");
+            return;
+        }
+
+        const button = type === 'LOGIN' ? document.querySelector('.btn-primary') : document.querySelector('.btn-danger');
+        button.animate([{ transform: 'scale(1)' }, { transform: 'scale(0.97)' }, { transform: 'scale(1)' }], { duration: 150 });
+
+        const inputLRN = document.getElementById('lrn').value.trim();
+        if (type === 'LOGIN' && (!inputLRN || inputLRN.length < 12)) { 
+            alert('Please supply a valid 12-digit LRN identifier.'); 
+            return; 
+        }
+
+        if (type === 'LOGIN') {
+            let { data: student, error } = await supabase.from('student_roster').select('student_name').eq('lrn', inputLRN).single();
+            
+            if (error || !student) { 
+                document.getElementById('mainCard').animate([
+                    { transform: 'translateX(0)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(0)' }
+                ], { duration: 250 });
+                alert('Access Refused: LRN record does not exist in your Supabase table.'); 
+                return; 
+            }
+
+            let { error: lockErr } = await supabase.from('active_sessions').update({ student_id: inputLRN, student_name: student.student_name, time_in: new Date() }).eq('pc_number', targetPC);
+            
+            if(!lockErr) {
+                localStorage.setItem(`active_session_${targetPC}`, 'true');
+                localStorage.setItem(`session_user_${targetPC}`, student.student_name);
+                localStorage.setItem(`session_lrn_${targetPC}`, inputLRN);
+                localStorage.setItem(`session_start_${targetPC}`, Date.now().toString());
+                launchDashboard(false);
+            } else {
+                alert("Database Update Error: Check if PC Number exists row-by-row.");
+            }
+        } else {
+            let { error: releaseErr } = await supabase.from('active_sessions').update({ student_id: null, student_name: null, time_in: null }).eq('pc_number', targetPC);
+            if(!releaseErr) {
+                const dash = document.getElementById('gateDashboard');
+                dash.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 250 }).onfinish = () => {
+                    localStorage.clear();
+                    window.location.reload();
+                };
+            }
+        }
+    }
+</script>
 </body>
 </html>
