@@ -14,12 +14,34 @@
 </header>
 
 <div class="container">
-    <a href="student.html" class="portal-card">
+    <a href="student.html" id="studentLink" class="portal-card">
         <span class="icon">📲</span>
         <h2>Student Terminal Gateway</h2>
         <p class="desc">Scan the physical workstation QR code to authenticate ownership and request computer lab station deployment.</p>
     </a>
 </div>
+
+<script>
+    window.onload = function() {
+        // Alamin kung may dalang PC number ang kasalukuyang URL (galing sa QR code)
+        const currentUrl = window.location.href;
+        let pcData = "";
+
+        if (currentUrl.includes('pc=01') || currentUrl.includes('pc01')) {
+            pcData = "#pc01";
+        } else if (currentUrl.includes('pc=02') || currentUrl.includes('pc02')) {
+            pcData = "#pc02";
+        }
+
+        // Kung may nahanap na PC number, awtomatikong idugtong ito sa pupuntahang student.html button!
+        if (pcData) {
+            const studentBtn = document.getElementById('studentLink');
+            if (studentBtn) {
+                studentBtn.href = `student.html${pcData}`;
+            }
+        }
+    }
+</script>
 
 </body>
 </html>
