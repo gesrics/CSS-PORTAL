@@ -79,63 +79,42 @@
             <div class="metric-lbl">Active Session Duration</div>
             <div class="metric-val timer" id="sessionClock">00:00:00</div>
         </div>
-        <p class="warning-text">⚠️ <strong>Liability Protection Clause:</strong> You are flagged as the active operator of this node. Report any physical system abnormalities immediately to the monitor proctor.</p>
+        <p class="warning-text">⚠️ <strong>Liability Protection Clause:</strong> You are flagged as the active operator of this node.</p>
         <button class="btn btn-danger" onclick="processAuth('LOGOUT')">Release Station (Sign Out)</button>
     </div>
 </div>
 
 <script>
     // ⚡ SUPABASE PRODUCTION CONFIGURATION
-    const DB_URL = "https://kofyybvvzzlcxemwlaqu.supabase.co"; // Connected na sa project ID mo!
-    const DB_KEY = "PASTE_YOUR_LONG_EYJHBGCI_ANON_KEY_HERE"; // Palitan mo ng mahabang key mo rito.
+    const DB_URL = "https://kofyybvvzzlcxemwlaqu.supabase.co"; 
+    const DB_KEY = "PASTE_YOUR_LONG_EYJHBGCI_ANON_KEY_HERE"; // <-- I-paste mo rito yung totoong mahabang key mo
 
-    const supabase = (typeof window.supabase !== 'undefined') ? window.supabase.createClient(DB_URL, DB_KEY) : null;
-
-    // Kunin ang parameter (?pc=01) nang maayos kahit anong browser view
-    const urlParams = new URLSearchParams(window.location.search || window.location.hash.substring(window.location.hash.indexOf('?')));
-    let targetPC = urlParams.get('pc');
-
+    const supabase = window.supabase.createClient(DB_URL, DB_KEY);
+    let targetPC = null;
     let timerRef = null;
 
     window.onload = function() {
+        // Titingin sa URL hash (halimbawa: #pc01 o #pc02)
+        const hash = window.location.hash;
+        
+        if (hash.startsWith('#pc')) {
+            targetPC = hash.replace('#pc', ''); // Nakukuha nito ang "01" o "02"
+        }
+
         if (!targetPC) {
-            console.log("No PC Parameter Detected.");
+            console.log("No PC Route Found.");
+            document.getElementById('gateLock').style.display = "block";
             return; 
         }
         
-        // Pag may legal parameter, tanggalin agad ang lock screen para lumitaw ang modern registration panel
+        // Pag nakita ang hash (#pc01), tanggalin agad ang lock screen at buksan ang login box
         document.getElementById('gateLock').style.display = "none";
         document.getElementById('gateForm').style.display = "block";
         document.getElementById('pcBadge').innerText = `💻 WORKSTATION PC-${targetPC}`;
 
-        const lrnInput = document.getElementById('lrn');
-        if(lrnInput) {
-            lrnInput.focus();
-            lrnInput.addEventListener('keydown', (e) => {
-                if(e.key === 'Enter') processAuth('LOGIN');
-            });
-        }
-
         if (localStorage.getItem(`active_session_${targetPC}`) === 'true') { 
             launchDashboard(true); 
         }
-    }
-
-    function switchView(hideId, showId) {
-        const hideEl = document.getElementById(hideId);
-        const showEl = document.getElementById(showId);
-        
-        hideEl.animate([
-            { opacity: 1, transform: 'translateY(0)' },
-            { opacity: 0, transform: 'translateY(-10px)' }
-        ], { duration: 250, easing: 'ease-in' }).onfinish = () => {
-            hideEl.style.display = "none";
-            showEl.style.display = "block";
-            showEl.animate([
-                { opacity: 0, transform: 'translateY(10px)' },
-                { opacity: 1, transform: 'translateY(0)' }
-            ], { duration: 300, easing: 'ease-out' });
-        };
     }
 
     function launchDashboard(immediate) {
@@ -143,7 +122,8 @@
             document.getElementById('gateForm').style.display = "none";
             document.getElementById('gateDashboard').style.display = "block";
         } else {
-            switchView('gateForm', 'gateDashboard');
+            document.getElementById('gateForm').style.display = "none";
+            document.getElementById('gateDashboard').style.display = "block";
         }
         
         document.getElementById('usrName').innerText = localStorage.getItem(`session_user_${targetPC}`);
@@ -161,14 +141,6 @@
     }
 
     async function processAuth(type) {
-        if (!supabase) {
-            alert("Database connection is uninitialized.");
-            return;
-        }
-
-        const button = type === 'LOGIN' ? document.querySelector('.btn-primary') : document.querySelector('.btn-danger');
-        button.animate([{ transform: 'scale(1)' }, { transform: 'scale(0.97)' }, { transform: 'scale(1)' }], { duration: 150 });
-
         const inputLRN = document.getElementById('lrn').value.trim();
         if (type === 'LOGIN' && (!inputLRN || inputLRN.length < 12)) { 
             alert('Please supply a valid 12-digit LRN identifier.'); 
@@ -179,9 +151,6 @@
             let { data: student, error } = await supabase.from('student_roster').select('student_name').eq('lrn', inputLRN).single();
             
             if (error || !student) { 
-                document.getElementById('mainCard').animate([
-                    { transform: 'translateX(0)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(0)' }
-                ], { duration: 250 });
                 alert('Access Refused: LRN record does not exist in your Supabase table.'); 
                 return; 
             }
@@ -191,20 +160,16 @@
             if(!lockErr) {
                 localStorage.setItem(`active_session_${targetPC}`, 'true');
                 localStorage.setItem(`session_user_${targetPC}`, student.student_name);
-                localStorage.setItem(`session_lrn_${targetPC}`, inputLRN);
                 localStorage.setItem(`session_start_${targetPC}`, Date.now().toString());
                 launchDashboard(false);
             } else {
-                alert("Database Update Error: Check if PC Number exists row-by-row.");
+                alert("Database Update Error.");
             }
         } else {
             let { error: releaseErr } = await supabase.from('active_sessions').update({ student_id: null, student_name: null, time_in: null }).eq('pc_number', targetPC);
             if(!releaseErr) {
-                const dash = document.getElementById('gateDashboard');
-                dash.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 250 }).onfinish = () => {
-                    localStorage.clear();
-                    window.location.reload();
-                };
+                localStorage.clear();
+                window.location.reload();
             }
         }
     }
