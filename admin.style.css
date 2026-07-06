@@ -1,0 +1,69 @@
+:root {
+    --dark-core: #060913;
+    --card-base: #0f1322;
+    --border-glow: #1e293b;
+    --neon-blue: #06b6d4;
+    --neon-green: #10b981;
+    --neon-red: #f43f5e;
+    --glass-card: rgba(255, 255, 255, 0.02);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --text-main: #f8fafc;
+    --text-sub: #64748b;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+body { background: var(--dark-core); color: var(--text-main); min-height: 100vh; position: relative; }
+
+/* 🔒 SECURE SIGN-IN GATEWAY */
+#loginGate { display: flex; flex-direction: column; justify-content: center; align-items: center; position: fixed; inset: 0; background: var(--dark-core); z-index: 100; padding: 20px; }
+#loginGate::before { content: ''; position: absolute; width: 350px; height: 350px; background: rgba(6, 182, 212, 0.08); border-radius: 50%; filter: blur(80px); }
+
+.login-card { background: var(--glass-card); border: 1px solid var(--glass-border); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); width: 100%; max-width: 380px; padding: 45px 35px; border-radius: 20px; box-shadow: 0 30px 60px rgba(0,0,0,0.6); text-align: center; z-index: 10; }
+.login-card h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.5px; }
+.login-card p { color: var(--text-sub); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 30px; }
+
+.input-box { text-align: left; margin-bottom: 25px; }
+.input-box label { display: block; font-size: 0.7rem; font-weight: 700; color: #94a3b8; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* MODERN PASSWORD FIELD EYE INTERACTIVE WRAPPER */
+.password-wrapper { position: relative; display: flex; align-items: center; }
+.password-wrapper input { width: 100%; padding: 14px 50px 14px 16px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 10px; color: #fff; font-size: 0.95rem; outline: none; transition: all 0.2s; letter-spacing: 0.5px; }
+.password-wrapper input:focus { border-color: var(--neon-blue); box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.12); }
+
+.toggle-password-btn { position: absolute; right: 16px; background: none; border: none; width: 20px; height: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; opacity: 0.5; transition: opacity 0.2s; }
+.toggle-password-btn:hover { opacity: 1; }
+
+/* Professional Pure CSS SVG Design */
+.eye-icon { width: 20px; height: 20px; stroke: #94a3b8; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.eye-slash-line { opacity: 0; transition: opacity 0.15s ease-in-out; }
+
+.btn-auth { width: 100%; padding: 14px; border: none; background: var(--neon-blue); color: #060913; font-size: 0.95rem; font-weight: 700; border-radius: 10px; cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px; }
+.btn-auth:hover { opacity: 0.9; transform: translateY(-1px); }
+
+/* 🖥️ MANAGEMENT CONTROL DASHBOARD */
+#dashboardContent { display: none; padding: 50px 20px; }
+header { text-align: center; margin-bottom: 50px; position: relative; max-width: 1100px; margin-left: auto; margin-right: auto; }
+header h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.5px; }
+header h1 span { color: var(--neon-blue); font-weight: 800; }
+
+.btn-lockout { position: absolute; top: 0; right: 0; background: rgba(244, 63, 94, 0.08); color: var(--neon-red); border: 1px solid rgba(244, 63, 94, 0.2); padding: 8px 18px; border-radius: 8px; font-weight: 600; font-size: 0.75rem; cursor: pointer; transition: all 0.2s; }
+.btn-lockout:hover { background: var(--neon-red); color: #fff; border-color: transparent; }
+
+.badge-live { display: inline-flex; align-items: center; gap: 8px; background: rgba(6,182,212,0.04); border: 1px solid rgba(6,182,212,0.15); padding: 6px 16px; border-radius: 30px; font-size: 0.7rem; font-weight: 700; color: var(--neon-blue); letter-spacing: 0.5px; }
+.pulse-dot { width: 6px; height: 6px; background: var(--neon-blue); border-radius: 50%; box-shadow: 0 0 8px var(--neon-blue); animation: blink 2s infinite; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 30px; max-width: 1100px; margin: 0 auto; }
+.station-card { background: var(--card-base); border: 1px solid var(--border-glow); border-radius: 16px; padding: 30px; text-align: center; position: relative; }
+.station-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: #334155; border-radius: 16px 16px 0 0; }
+.station-card.occupied::before { background: var(--neon-green); }
+.station-card.occupied { border-color: rgba(16, 185, 129, 0.15); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+
+.title { font-size: 1.1rem; font-weight: 700; margin-bottom: 14px; letter-spacing: -0.3px; color: #f1f5f9; }
+.state-badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 0.65rem; font-weight: 700; margin-bottom: 25px; letter-spacing: 0.5px; text-transform: uppercase; }
+.state-vacant { background: rgba(148,163,184,0.06); color: #64748b; border: 1px solid rgba(148,163,184,0.1); }
+.state-occupied { background: rgba(16,185,129,0.08); color: var(--neon-green); border: 1px solid rgba(16,185,129,0.15); }
+
+.info-panel { text-align: left; background: #060913; padding: 20px; border-radius: 12px; font-size: 0.85rem; line-height: 1.8; border: 1px solid rgba(255,255,255,0.01); }
+.info-panel strong { color: var(--text-sub); font-weight: 500; }
+.info-panel span { color: #e2e8f0; font-weight: 600; float: right; }
+
+@keyframes blink { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }

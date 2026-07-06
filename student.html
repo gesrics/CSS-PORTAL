@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNHS Terminal - Student</title>
+    <link rel="stylesheet" href="css/student.style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div class="glass-card" id="mainCard">
+    <div class="brand">Daraga National HS</div>
+    <h2 id="viewTitle">Station Security Gate</h2>
+
+    <div id="gateLock">
+        <div class="lock-icon">🔒</div>
+        <p class="lock-text"><strong>Access Blocked.</strong><br>Please use your smartphone camera to scan the official QR Code pasted on your workstation to proceed.</p>
+    </div>
+
+    <div id="gateForm" style="display:none;">
+        <div id="pcBadge" class="station-badge">💻 WORKSTATION STALL</div>
+        <div class="input-group">
+            <label>Student LRN (12 Digits)</label>
+            <input type="text" id="lrn" placeholder="Enter your 12-digit student LRN" maxlength="12">
+        </div>
+        <button class="btn btn-primary" onclick="processAuth('LOGIN')">Claim Accountability</button>
+    </div>
+
+    <div id="gateDashboard" style="display:none;">
+        <div class="welcome-msg">Welcome, <span id="usrName">Student</span>! 👋</div>
+        <div class="metric-box">
+            <div class="metric-lbl">Assigned Hardware Unit</div>
+            <div class="metric-val" id="assignedUnit">PC Station #--</div>
+        </div>
+        <div class="metric-box">
+            <div class="metric-lbl">Active Session Duration</div>
+            <div class="metric-val timer" id="sessionClock">00:00:00</div>
+        </div>
+        <p class="warning-text">⚠️ <strong>Liability Protection Clause:</strong> You are flagged as the active operator of this node. Report any physical system abnormalities immediately to the monitor proctor.</p>
+        <button class="btn btn-danger" onclick="processAuth('LOGOUT')">Release Station (Sign Out)</button>
+    </div>
+</div>
+
+<script src="js/student.app.js"></script>
+</body>
+</html>
