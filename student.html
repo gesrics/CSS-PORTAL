@@ -6,59 +6,113 @@
     <title>DNHS Terminal</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --bg-dark: #090d16; --accent-cyan: #06b6d4; }
-        body { background: var(--bg-dark); color: #fff; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: rgba(255,255,255,0.05); padding: 30px; border-radius: 20px; text-align: center; width: 90%; max-width: 400px; border: 1px solid #334155; }
-        input { width: 100%; padding: 15px; margin: 15px 0; background: #000; border: 1px solid #334155; color: #fff; border-radius: 10px; }
-        .btn { width: 100%; padding: 15px; background: var(--accent-cyan); border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        :root { 
+            --bg-dark: #090d16; 
+            --glass-card: rgba(255, 255, 255, 0.05); 
+            --accent-cyan: #06b6d4; 
+        }
+        body { 
+            background: var(--bg-dark); 
+            color: #fff; 
+            font-family: 'Segoe UI', sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+        }
+        .card { 
+            background: var(--glass-card); 
+            padding: 40px; 
+            border-radius: 25px; 
+            text-align: center; 
+            width: 90%; 
+            max-width: 400px; 
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+        }
+        h2 { margin-bottom: 20px; color: var(--accent-cyan); }
+        input { 
+            width: 100%; 
+            padding: 15px; 
+            margin: 15px 0; 
+            background: rgba(0,0,0,0.3); 
+            border: 1px solid #334155; 
+            color: #fff; 
+            border-radius: 12px; 
+            font-size: 1rem;
+        }
+        .btn { 
+            width: 100%; 
+            padding: 15px; 
+            background: var(--accent-cyan); 
+            border: none; 
+            border-radius: 12px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            color: #000;
+        }
     </style>
 </head>
 <body>
 
 <div class="card" id="mainCard">
     <h2 id="title">Station Gate</h2>
-    <div id="gateLock">🔒 Scanning Workstation...</div>
+    <div id="gateLock">🔒 Scanning...</div>
     <div id="gateForm" style="display:none;">
         <div id="pcBadge" style="color:var(--accent-cyan); font-weight:bold; margin-bottom:10px;">PC-XX</div>
         <input type="text" id="lrn" placeholder="Enter 12-digit LRN" maxlength="12">
-        <button class="btn" onclick="processAuth()">Claim Accountability</button>
+        <button class="btn" id="authBtn">Claim Accountability</button>
     </div>
 </div>
 
 <script>
-    const supabase = window.supabase.createClient("https://kofyybvvzzlcxemwlaqu.supabase.co", "sb_publishable_EXyi06rbFxY4OUV1XRyfjw_omMnlxFN");
-
-    window.onload = () => {
-        // Aggressive PC Detection: URL Query (?pc=01) o Hash (#pc01)
-        const params = new URLSearchParams(window.location.search);
-        let pc = params.get('pc') || window.location.hash.replace('#', '').replace('pc', '');
-        
-        // AUTO-FIX: Kung walang PC, gawing 01 para hindi ma-lock
-        if (!pc) pc = "01"; 
-
-        document.getElementById('gateLock').style.display = "none";
-        document.getElementById('gateForm').style.display = "block";
-        document.getElementById('pcBadge').innerText = `💻 WORKSTATION PC-${pc}`;
-        window.targetPC = pc;
-    };
-
-    async function processAuth() {
-        const lrn = document.getElementById('lrn').value.trim();
-        if (lrn.length < 12) return alert("Invalid LRN");
-
-        let { data: student } = await supabase.from('student_roster').select('student_name').eq('lrn', lrn).single();
-        if (student) {
-            await supabase.from('active_sessions').update({ 
-                student_id: lrn, 
-                student_name: student.student_name, 
-                time_in: new Date().toISOString() 
-            }).eq('pc_number', window.targetPC);
-            alert("Welcome " + student.student_name);
-            window.location.reload();
-        } else {
-            alert("LRN not found.");
+    // Siguraduhin na load si Supabase
+    window.addEventListener('DOMContentLoaded', () => {
+        function checkSupabase() {
+            if (typeof supabase === 'undefined') {
+                setTimeout(checkSupabase, 100);
+            } else {
+                startApp();
+            }
         }
-    }
+
+        function startApp() {
+            const client = supabase.createClient(
+                "https://kofyybvvzzlcxemwlaqu.supabase.co", 
+                "sb_publishable_EXyi06rbFxY4OUV1XRyfjw_omMnlxFN"
+            );
+
+            const params = new URLSearchParams(window.location.search);
+            let pc = params.get('pc') || "01";
+
+            document.getElementById('gateLock').style.display = "none";
+            document.getElementById('gateForm').style.display = "block";
+            document.getElementById('pcBadge').innerText = `💻 WORKSTATION PC-${pc}`;
+
+            document.getElementById('authBtn').onclick = async () => {
+                const lrn = document.getElementById('lrn').value.trim();
+                if (lrn.length < 12) return alert("Invalid LRN");
+
+                let { data: student } = await client
+                    .from('student_roster')
+                    .select('student_name')
+                    .eq('lrn', lrn)
+                    .single();
+
+                if (student) {
+                    await client.from('active_sessions')
+                        .update({ student_id: lrn, student_name: student.student_name, time_in: new Date().toISOString() })
+                        .eq('pc_number', pc);
+                    alert("Welcome " + student.student_name);
+                    window.location.reload();
+                } else {
+                    alert("LRN not found.");
+                }
+            };
+        }
+        checkSupabase();
+    });
 </script>
 </body>
 </html>
