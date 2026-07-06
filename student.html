@@ -10,21 +10,24 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
         body { background: var(--bg-dark); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; color: #fff; }
         .glass-card { background: var(--glass-card); border: 1px solid var(--glass-border); backdrop-filter: blur(25px); width: 100%; max-width: 400px; padding: 40px; border-radius: 28px; text-align: center; }
-        .station-badge { display: inline-block; padding: 10px 22px; background: rgba(6, 182, 212, 0.08); border: 1px solid rgba(6, 182, 212, 0.25); color: var(--accent-cyan); border-radius: 14px; margin-bottom: 20px; }
+        .station-badge { display: inline-block; padding: 10px 22px; background: rgba(6, 182, 212, 0.08); border: 1px solid rgba(6, 182, 212, 0.25); color: var(--accent-cyan); border-radius: 14px; margin-bottom: 20px; font-weight: bold; }
         input { width: 100%; padding: 16px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 14px; color: #fff; margin-bottom: 20px; }
-        .btn { width: 100%; padding: 16px; border: none; border-radius: 14px; font-weight: 700; cursor: pointer; }
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 14px; font-weight: 700; cursor: pointer; transition: 0.3s; }
         .btn-primary { background: var(--accent-cyan); color: #090d16; }
+        .btn-primary:hover { opacity: 0.8; }
+        #gateLock { color: #f87171; font-weight: bold; padding: 20px; }
     </style>
 </head>
 <body>
 
 <div class="glass-card" id="mainCard">
     <h2 id="title">Station Security Gate</h2>
-    <div id="gateLock">🔒 Access Blocked. Scan QR code to proceed.</div>
+    <div id="gateLock">🔒 Scanning for valid workstation...</div>
+    
     <div id="gateForm" style="display:none;">
         <div id="pcBadge" class="station-badge">PC Station</div>
         <input type="text" id="lrn" placeholder="Enter 12-digit LRN" maxlength="12">
-        <button class="btn btn-primary" onclick="processAuth('LOGIN')">Claim Accountability</button>
+        <button class="btn btn-primary" onclick="processAuth()">Claim Accountability</button>
     </div>
 </div>
 
@@ -32,22 +35,45 @@
     const DB_URL = "https://kofyybvvzzlcxemwlaqu.supabase.co"; 
     const DB_KEY = "sb_publishable_EXyi06rbFxY4OUV1XRyfjw_omMnlxFN"; 
     const supabase = window.supabase.createClient(DB_URL, DB_KEY);
-    let targetPC = new URLSearchParams(window.location.search).get('pc') || "01";
+
+    // Kukunin ang ?pc=XX mula sa URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetPC = urlParams.get('pc');
 
     window.onload = () => {
-        document.getElementById('gateLock').style.display = "none";
-        document.getElementById('gateForm').style.display = "block";
-        document.getElementById('pcBadge').innerText = `💻 WORKSTATION PC-${targetPC}`;
+        if (targetPC) {
+            // Kung may PC number, i-unlock ang form
+            document.getElementById('gateLock').style.display = "none";
+            document.getElementById('gateForm').style.display = "block";
+            document.getElementById('pcBadge').innerText = `💻 WORKSTATION PC-${targetPC}`;
+        } else {
+            // Kung walang ?pc=XX, mananatiling naka-lock
+            document.getElementById('gateLock').innerText = "🚫 Access Denied: No Workstation QR Detected.";
+        }
     };
 
-    async function processAuth(type) {
+    async function processAuth() {
         const lrn = document.getElementById('lrn').value.trim();
-        let { data: student } = await supabase.from('student_roster').select('student_name').eq('lrn', lrn).single();
+        if (lrn.length < 12) return alert("Please enter 12-digit LRN.");
+
+        // Hanapin ang student
+        let { data: student, error } = await supabase.from('student_roster').select('student_name').eq('lrn', lrn).single();
+        
         if (student) {
-            await supabase.from('active_sessions').update({ student_id: lrn, student_name: student.student_name, time_in: new Date() }).eq('pc_number', targetPC);
-            alert("Welcome " + student.student_name);
-            window.location.reload();
-        } else { alert("LRN not found."); }
+            // I-update ang session sa database
+            let { error: updateErr } = await supabase.from('active_sessions')
+                .update({ student_id: lrn, student_name: student.student_name, time_in: new Date().toISOString() })
+                .eq('pc_number', targetPC);
+
+            if (!updateErr) {
+                alert("Successfully claimed station PC-" + targetPC + "! Welcome " + student.student_name);
+                window.location.reload();
+            } else {
+                alert("Error updating session: " + updateErr.message);
+            }
+        } else {
+            alert("LRN not found in roster.");
+        }
     }
 </script>
 </body>
