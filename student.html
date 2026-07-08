@@ -105,94 +105,66 @@
         }
 
         .glass-card.blocked {
-            border-color: rgba(239, 68, 68, 0.3);
-            background: rgba(239, 68, 68, 0.05);
+            border-color: rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.05);
             text-align: center;
+            backdrop-filter: blur(40px) saturate(180%);
         }
 
         .glass-card.blocked .blocked-icon {
-            font-size: 48px;
-            margin-bottom: 16px;
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 20px;
+            opacity: 0.9;
+            color: rgba(255, 255, 255, 0.8);
         }
 
         .glass-card.blocked h2 {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 700;
-            margin-bottom: 8px;
-            color: #fca5a5;
+            margin-bottom: 10px;
+            color: #fff;
+            letter-spacing: -0.02em;
         }
 
         .glass-card.blocked p {
             font-size: 14px;
             color: rgba(255, 255, 255, 0.6);
-            margin-bottom: 24px;
+            margin-bottom: 28px;
+            line-height: 1.5;
         }
 
         #qr-reader {
-            border-radius: 16px;
+            border-radius: 20px;
             overflow: hidden;
-            margin-bottom: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(0, 0, 0, 0.3);
-            min-height: 240px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(0, 0, 0, 0.4);
+            min-height: 260px;
+            position: relative;
         }
 
         #qr-reader video {
-            border-radius: 16px;
+            border-radius: 20px;
             object-fit: cover;
         }
 
         #qr-reader__scan_region {
-            background: rgba(0, 0, 0, 0.4) !important;
-            border-radius: 16px !important;
+            background: rgba(0, 0, 0, 0.5) !important;
+            border-radius: 20px !important;
         }
 
         #qr-reader__dashboard {
             padding: 16px !important;
         }
 
-        .scan-fallback {
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .scan-fallback label {
-            display: block;
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.5);
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .scan-fallback .input-group {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 0;
-        }
-
-        .scan-fallback input {
-            flex: 1;
-            padding: 12px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            color: #fff;
-            font-size: 14px;
-        }
-
-        .scan-fallback .btn {
-            width: auto;
-            padding: 12px 20px;
-            font-size: 13px;
-        }
-
         .scan-status {
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.5);
-            margin-top: 12px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 16px;
             min-height: 20px;
+            text-align: center;
+            font-weight: 500;
         }
 
         .input-group {
@@ -358,18 +330,16 @@
         </div>
 
         <div class="glass-card" id="qrGateCard">
-            <div class="blocked-icon">&#128683;</div>
+            <div class="blocked-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+            </div>
             <h2>Access Blocked</h2>
             <p>Scan the QR code at your station to continue.</p>
             <div id="qr-reader"></div>
-            <p class="scan-status" id="scanStatus">Point your camera at the QR code...</p>
-            <div class="scan-fallback">
-                <label>Or enter PC number manually</label>
-                <div class="input-group">
-                                <input type="text" id="manualPC" placeholder="e.g. 01" maxlength="5" inputmode="numeric" onkeydown="if(event.key==='Enter')manualPCSubmit()">
-                                <button class="btn" onclick="manualPCSubmit()">Go</button>
-                </div>
-            </div>
+            <p class="scan-status" id="scanStatus">Initializing camera...</p>
         </div>
 
         <div class="glass-card hidden" id="mainCard">
@@ -442,90 +412,114 @@
             const statusEl = document.getElementById('scanStatus');
             
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                statusEl.innerText = 'Camera not available. Please enter PC number manually.';
+                statusEl.innerText = 'Camera not available.';
                 return;
             }
 
-            const video = document.createElement('video');
-            video.setAttribute('playsinline', 'true');
-            video.style.cssText = 'width:100%;border-radius:16px;background:#000;display:block;';
-            readerEl.innerHTML = '';
-            readerEl.appendChild(video);
-
-            let stream = null;
-            let detector = null;
-
-            async function startCamera() {
-                try {
-                    stream = await navigator.mediaDevices.getUserMedia({ 
-                        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } 
-                    });
-                    video.srcObject = stream;
-                    await video.play();
-                    statusEl.innerText = 'Camera active. Point at QR code...';
-                    startDetection();
-                } catch (err) {
-                    statusEl.innerText = 'Camera access denied. Please enter PC number manually.';
-                    console.error(err);
-                }
-            }
-
-            async function startDetection() {
-                if (!('BarcodeDetector' in window)) {
-                    statusEl.innerText = 'QR scanner not supported in this browser. Please enter PC number manually.';
-                    return;
-                }
-
-                try {
-                    detector = new BarcodeDetector({ formats: ['qr_code'] });
-                } catch {
-                    statusEl.innerText = 'QR scanner not supported. Please enter PC number manually.';
-                    return;
-                }
-
-                async function detect() {
-                    if (!detector || !qrAccessGranted === false) return;
-                    try {
-                        const barcodes = await detector.detect(video);
-                        if (barcodes && barcodes.length > 0) {
-                            const decodedText = barcodes[0].rawValue;
-                            handleQRScan(decodedText);
-                            return;
-                        }
-                    } catch {
-                        // ignore frame errors
-                    }
-                    requestAnimationFrame(detect);
-                }
-
-                detect();
-            }
-
-            function handleQRScan(decodedText) {
-                let qrPC = decodedText.trim();
-                
+            function extractPC(text) {
+                let qrPC = String(text).trim();
+                if (!qrPC) return '';
                 try {
                     const url = new URL(qrPC);
                     qrPC = url.searchParams.get('pc') || url.pathname.replace(/[^0-9]/g, '');
                 } catch {
                     qrPC = qrPC.replace(/[^0-9]/g, '');
                 }
-                
-                qrPC = String(qrPC).trim();
-                if (qrPC && (qrPC === String(targetPC) || qrPC === targetPC)) {
-                    if (stream) {
-                        stream.getTracks().forEach(track => track.stop());
-                    }
+                return qrPC.trim();
+            }
+
+            function handleScanSuccess(qrPC) {
+                if (!qrPC) return;
+                if (qrPC === String(targetPC)) {
                     statusEl.innerText = 'Access granted!';
                     statusEl.style.color = '#06b6d4';
                     grantAccess();
-                } else if (qrPC) {
+                } else {
                     statusEl.innerText = `Scanned PC (${qrPC}) does not match this station (${targetPC}).`;
                     statusEl.style.color = '#ef4444';
                 }
             }
 
-            startCamera();
+            if ('BarcodeDetector' in window) {
+                const video = document.createElement('video');
+                video.setAttribute('playsinline', 'true');
+                video.style.cssText = 'width:100%;border-radius:16px;background:#000;display:block;';
+                readerEl.innerHTML = '';
+                readerEl.appendChild(video);
+
+                let stream = null;
+                let detector = null;
+
+                try {
+                    detector = new BarcodeDetector({ formats: ['qr_code'] });
+                } catch {
+                    statusEl.innerText = 'QR scanner not available.';
+                    return;
+                }
+
+                async function startCamera() {
+                    try {
+                        stream = await navigator.mediaDevices.getUserMedia({ 
+                            video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } 
+                        });
+                        video.srcObject = stream;
+                        await video.play();
+                        statusEl.innerText = 'Camera active. Point at QR code...';
+                        detectLoop();
+                    } catch (err) {
+                        statusEl.innerText = 'Camera access denied.';
+                        console.error(err);
+                    }
+                }
+
+                async function detectLoop() {
+                    if (qrAccessGranted) return;
+                    try {
+                        const barcodes = await detector.detect(video);
+                        if (barcodes && barcodes.length > 0) {
+                            const qrPC = extractPC(barcodes[0].rawValue);
+                            if (qrPC) {
+                                if (stream) {
+                                    stream.getTracks().forEach(track => track.stop());
+                                }
+                                handleScanSuccess(qrPC);
+                                return;
+                            }
+                        }
+                    } catch {
+                        // ignore frame errors
+                    }
+                    if (!qrAccessGranted) {
+                        requestAnimationFrame(detectLoop);
+                    }
+                }
+
+                startCamera();
+            } else if (window.Html5Qrcode) {
+                const qrScanner = new Html5QrcodeScanner('qr-reader', {
+                    fps: 20,
+                    qrbox: { width: 240, height: 240 },
+                    aspectRatio: 1.0
+                });
+
+                qrScanner.render((decodedText) => {
+                    const qrPC = extractPC(decodedText);
+                    if (qrPC && qrPC === String(targetPC)) {
+                        qrScanner.clear().then(() => {
+                            statusEl.innerText = 'Access granted!';
+                            statusEl.style.color = '#06b6d4';
+                            grantAccess();
+                        }).catch(() => grantAccess());
+                    } else if (qrPC) {
+                        statusEl.innerText = `Scanned PC (${qrPC}) does not match this station (${targetPC}).`;
+                        statusEl.style.color = '#ef4444';
+                    }
+                }, () => {
+                    // scanning...
+                });
+            } else {
+                statusEl.innerText = 'QR scanner not supported.';
+            }
         }
 
         window.addEventListener('load', () => {
@@ -555,22 +549,6 @@
                 Swal.close();
             } else {
                 Swal.fire("Error", "LRN not found.", "error");
-            }
-        }
-
-        function manualPCSubmit() {
-            const input = document.getElementById('manualPC');
-            const qrPC = input.value.replace(/[^0-9]/g, '').trim();
-            input.value = '';
-            if (!qrPC) return;
-            
-            if (qrPC === String(targetPC) || qrPC === targetPC) {
-                document.getElementById('scanStatus').innerText = 'Access granted!';
-                document.getElementById('scanStatus').style.color = '#06b6d4';
-                grantAccess();
-            } else {
-                document.getElementById('scanStatus').innerText = `Entered PC (${qrPC}) does not match this station (${targetPC}).`;
-                document.getElementById('scanStatus').style.color = '#ef4444';
             }
         }
 
