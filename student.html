@@ -134,16 +134,65 @@
             margin-bottom: 16px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             background: rgba(0, 0, 0, 0.3);
+            min-height: 240px;
         }
 
         #qr-reader video {
             border-radius: 16px;
+            object-fit: cover;
+        }
+
+        #qr-reader__scan_region {
+            background: rgba(0, 0, 0, 0.4) !important;
+            border-radius: 16px !important;
+        }
+
+        #qr-reader__dashboard {
+            padding: 16px !important;
+        }
+
+        .scan-fallback {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .scan-fallback label {
+            display: block;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .scan-fallback .input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 0;
+        }
+
+        .scan-fallback input {
+            flex: 1;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .scan-fallback .btn {
+            width: auto;
+            padding: 12px 20px;
+            font-size: 13px;
         }
 
         .scan-status {
             font-size: 13px;
             color: rgba(255, 255, 255, 0.5);
             margin-top: 12px;
+            min-height: 20px;
         }
 
         .input-group {
@@ -311,9 +360,16 @@
         <div class="glass-card" id="qrGateCard">
             <div class="blocked-icon">&#128683;</div>
             <h2>Access Blocked</h2>
-            <p>Please scan the QR code at your station to continue.</p>
+            <p>Scan the QR code at your station to continue.</p>
             <div id="qr-reader"></div>
             <p class="scan-status" id="scanStatus">Point your camera at the QR code...</p>
+            <div class="scan-fallback">
+                <label>Or enter PC number manually</label>
+                <div class="input-group">
+                                <input type="text" id="manualPC" placeholder="e.g. 01" maxlength="5" inputmode="numeric" onkeydown="if(event.key==='Enter')manualPCSubmit()">
+                                <button class="btn" onclick="manualPCSubmit()">Go</button>
+                </div>
+            </div>
         </div>
 
         <div class="glass-card hidden" id="mainCard">
@@ -388,20 +444,33 @@
             }
 
             qrScanner = new Html5QrcodeScanner('qr-reader', {
-                fps: 10,
-                qrbox: { width: 220, height: 220 },
-                aspectRatio: 1.0
-            });
+                fps: 20,
+                qrbox: { width: 240, height: 240 },
+                aspectRatio: 1.0,
+                disableFlip: false
+            }, true);
 
             qrScanner.render((decodedText) => {
-                const qrPC = decodedText.replace(/[^0-9]/g, '').trim();
-                if (qrPC === String(targetPC) || qrPC === targetPC) {
-                    qrScanner.clear();
-                    document.getElementById('scanStatus').innerText = 'Access granted!';
-                    document.getElementById('scanStatus').style.color = '#06b6d4';
-                    grantAccess();
-                } else {
-                    document.getElementById('scanStatus').innerText = `Scanned PC does not match this station (${targetPC}).`;
+                let qrPC = decodedText.trim();
+                
+                try {
+                    const url = new URL(qrPC);
+                    qrPC = url.searchParams.get('pc') || url.pathname.replace(/[^0-9]/g, '');
+                } catch {
+                    qrPC = qrPC.replace(/[^0-9]/g, '');
+                }
+                
+                qrPC = String(qrPC).trim();
+                if (qrPC && (qrPC === String(targetPC) || qrPC === targetPC)) {
+                    qrScanner.clear().then(() => {
+                        document.getElementById('scanStatus').innerText = 'Access granted!';
+                        document.getElementById('scanStatus').style.color = '#06b6d4';
+                        grantAccess();
+                    }).catch(() => {
+                        grantAccess();
+                    });
+                } else if (qrPC) {
+                    document.getElementById('scanStatus').innerText = `Scanned PC (${qrPC}) does not match this station (${targetPC}).`;
                     document.getElementById('scanStatus').style.color = '#ef4444';
                 }
             }, (errorMessage) => {
@@ -436,6 +505,22 @@
                 Swal.close();
             } else {
                 Swal.fire("Error", "LRN not found.", "error");
+            }
+        }
+
+        function manualPCSubmit() {
+            const input = document.getElementById('manualPC');
+            const qrPC = input.value.replace(/[^0-9]/g, '').trim();
+            input.value = '';
+            if (!qrPC) return;
+            
+            if (qrPC === String(targetPC) || qrPC === targetPC) {
+                document.getElementById('scanStatus').innerText = 'Access granted!';
+                document.getElementById('scanStatus').style.color = '#06b6d4';
+                grantAccess();
+            } else {
+                document.getElementById('scanStatus').innerText = `Entered PC (${qrPC}) does not match this station (${targetPC}).`;
+                document.getElementById('scanStatus').style.color = '#ef4444';
             }
         }
 
