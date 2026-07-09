@@ -7,568 +7,314 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #000;
-            color: #fff;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        .background {
-            position: fixed;
-            inset: 0;
-            background: 
-                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.25), transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 119, 115, 0.15), transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(59, 130, 246, 0.1), transparent 50%);
-            z-index: -1;
-        }
-
-        .background::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-            opacity: 0.03;
-            mix-blend-mode: overlay;
-        }
-
-        .terminal-container {
-            width: 100%;
-            max-width: 420px;
-            padding: 20px;
-            animation: fadeInUp 0.6s ease-out;
-        }
-
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .terminal-header {
-            text-align: center;
-            margin-bottom: 32px;
-        }
-
-        .pc-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 100px;
-            padding: 8px 20px;
-            font-size: 13px;
-            font-weight: 500;
-            color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 24px;
-        }
-
-        .pc-badge .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #06b6d4;
-            box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
-        }
-
-        .terminal-header h1 {
-            font-size: 32px;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            margin-bottom: 8px;
-        }
-
-        .terminal-header p {
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.5);
-            font-weight: 400;
-        }
-
-        .glass-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(40px) saturate(180%);
-            -webkit-backdrop-filter: blur(40px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 32px;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .glass-card.blocked {
-            border-color: rgba(255, 255, 255, 0.12);
-            background: rgba(255, 255, 255, 0.05);
-            text-align: center;
-            backdrop-filter: blur(40px) saturate(180%);
-        }
-
-        .glass-card.blocked .blocked-icon {
-            width: 48px;
-            height: 48px;
-            margin: 0 auto 20px;
-            opacity: 0.9;
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        .glass-card.blocked h2 {
-            font-size: 22px;
-            font-weight: 700;
-            margin-bottom: 10px;
-            color: #fff;
-            letter-spacing: -0.02em;
-        }
-
-        .glass-card.blocked p {
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.6);
-            margin-bottom: 28px;
-            line-height: 1.5;
-        }
-
-        #qr-reader {
-            border-radius: 20px;
-            overflow: hidden;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            background: rgba(0, 0, 0, 0.4);
-            min-height: 260px;
-            position: relative;
-        }
-
-        #qr-reader video {
-            border-radius: 20px;
-            object-fit: cover;
-        }
-
-        #qr-reader__scan_region {
-            background: rgba(0, 0, 0, 0.5) !important;
-            border-radius: 20px !important;
-        }
-
-        #qr-reader__dashboard {
-            padding: 16px !important;
-        }
-
-        .scan-status {
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.6);
-            margin-top: 16px;
-            min-height: 20px;
-            text-align: center;
-            font-weight: 500;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-        }
-
-        .input-group label {
-            display: block;
-            font-size: 13px;
-            font-weight: 500;
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 8px;
-            letter-spacing: 0.02em;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 16px 18px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 14px;
-            color: #fff;
-            font-size: 15px;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.3s ease;
-            outline: none;
-        }
-
-        .input-group input:focus {
-            border-color: rgba(59, 130, 246, 0.5);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .input-group input::placeholder {
-            color: rgba(255, 255, 255, 0.3);
-        }
-
-        .btn {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #3b82f6, #06b6d4);
-            border: none;
-            border-radius: 14px;
-            font-weight: 600;
-            font-size: 15px;
-            cursor: pointer;
-            color: #fff;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-family: 'Inter', sans-serif;
-            letter-spacing: -0.01em;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .btn-danger {
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #fca5a5;
-        }
-
-        .btn-danger:hover {
-            background: rgba(239, 68, 68, 0.25);
-            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.2);
-        }
-
-        .session-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(6, 182, 212, 0.1);
-            border: 1px solid rgba(6, 182, 212, 0.2);
-            border-radius: 100px;
-            padding: 6px 16px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #06b6d4;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 24px;
-        }
-
-        .session-status .pulse {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #06b6d4;
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin: 24px 0;
-        }
-
-        .info-item {
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 14px;
-            padding: 14px;
-            transition: all 0.3s ease;
-        }
-
-        .info-item.full {
-            grid-column: 1 / -1;
-        }
-
-        .info-item label {
-            display: block;
-            font-size: 11px;
-            font-weight: 500;
-            color: rgba(255, 255, 255, 0.5);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 6px;
-        }
-
-        .info-item .value {
-            font-size: 15px;
-            font-weight: 600;
-            color: #fff;
-        }
-
-        .info-item .value.highlight {
-            color: #06b6d4;
-            font-variant-numeric: tabular-nums;
-            font-family: 'SF Mono', 'Inter', monospace;
-        }
-
+        body { font-family: 'Inter', sans-serif; background: #000; color: #fff; min-height: 100vh; display: flex; justify-content: center; align-items: center; }
+        .background { position: fixed; inset: 0; background: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.25), transparent 50%), radial-gradient(circle at 80% 20%, rgba(255, 119, 115, 0.15), transparent 50%); z-index: -1; }
+        .terminal-container { width: 100%; max-width: 420px; padding: 20px; }
+        .pc-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 100px; padding: 8px 20px; font-size: 13px; color: rgba(255, 255, 255, 0.8); margin-bottom: 24px; }
+        .pc-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: #06b6d4; }
+        .glass-card { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 32px; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; font-size: 13px; color: rgba(255, 255, 255, 0.7); margin-bottom: 8px; }
+        .input-group input { width: 100%; padding: 16px 18px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; color: #fff; font-size: 15px; outline: none; }
+        .btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #3b82f6, #06b6d4); border: none; border-radius: 14px; font-weight: 600; font-size: 15px; cursor: pointer; color: #fff; }
+        .btn-offline-bypass { margin-top: 10px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); font-size: 13px; }
+        .btn-danger { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; }
+        .pc-grid-select { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
+        .btn-pc-choice { padding: 14px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; color: #fff; font-weight: 600; cursor: pointer; text-align: left; }
+        .btn-pc-choice.occupied { opacity: 0.5; border-color: rgba(239, 68, 68, 0.3); cursor: not-allowed; }
+        .pc-choice-status { font-size: 11px; display: block; margin-top: 4px; color: rgba(255,255,255,0.5); }
         .hidden { display: none !important; }
-
-        @media (max-width: 480px) {
-            .terminal-container { padding: 16px; }
-            .glass-card { padding: 24px; }
-            .info-grid { grid-template-columns: 1fr; }
-        }
+        
+        /* Pro Scanner UI Customizations */
+        #qr-reader { border: none !important; background: transparent !important; }
+        #qr-reader__dashboard { padding: 0 !important; }
+        #qr-reader__dashboard_section_csr span { color: rgba(255,255,255,0.7) !important; font-size: 12px !important; }
+        #qr-reader button { padding: 8px 16px !important; background: rgba(255,255,255,0.1) !important; border: 1px solid rgba(255,255,255,0.2) !important; border-radius: 8px !important; color: #fff !important; font-weight: 500 !important; cursor: pointer !important; margin-top: 8px !important; }
+        #qr-reader select { padding: 8px !important; background: rgba(0,0,0,0.5) !important; color: #fff !important; border: 1px solid rgba(255,255,255,0.2) !important; border-radius: 8px !important; margin-bottom: 8px !important; }
     </style>
 </head>
 <body>
     <div class="background"></div>
 
     <div class="terminal-container">
-        <div class="terminal-header">
-            <div class="pc-badge">
-                <span class="dot"></span>
-                <span id="pcBadge">PC STATION</span>
-            </div>
-            <h1 id="pageTitle">Student Terminal</h1>
-            <p id="pageSubtitle">Enter your credentials to begin a session</p>
+        <div style="text-align: center; margin-bottom: 32px;">
+            <div class="pc-badge hidden" id="pcBadgeContainer"><span class="dot"></span><span id="pcBadge">PC STATION</span></div>
+            <h1 id="pageTitle" style="font-size: 32px; font-weight: 700; margin-bottom: 8px;">Student Terminal</h1>
+            <p id="pageSubtitle" style="font-size: 14px; color: rgba(255, 255, 255, 0.5);">Scan station QR code to begin</p>
         </div>
 
         <div class="glass-card" id="qrGateCard">
-            <div class="blocked-icon">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                </svg>
-            </div>
             <h2>Access Blocked</h2>
-            <p>Scan the QR code at your station to continue.</p>
-            <div id="qr-reader"></div>
-            <p class="scan-status" id="scanStatus">Initializing camera...</p>
+            <p style="font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 4px; margin-bottom: 16px;">Scan station QR or use offline mode.</p>
+            <div id="qr-reader" style="border-radius: 16px; overflow: hidden; min-height: 180px;"></div>
+            <button class="btn btn-offline-bypass" onclick="showPCSelector()" style="margin-top: 16px;">Skip QR (Offline Mode)</button>
+        </div>
+
+        <div class="glass-card hidden" id="pcSelectorCard">
+            <h2>Select PC Station</h2>
+            <p style="font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 4px; margin-bottom: 16px;">Piliin ang bakanteng PC:</p>
+            <div class="pc-grid-select" id="pcGridOptions"></div>
+            <button class="btn btn-offline-bypass" onclick="backToQRGate()">Back to QR Scanner</button>
         </div>
 
         <div class="glass-card hidden" id="mainCard">
             <div id="gateForm">
                 <div class="input-group">
                     <label>LRN</label>
-                    <input type="text" id="lrn" placeholder="Enter your LRN" maxlength="12" autocomplete="off">
+                    <input type="text" id="lrn" placeholder="Enter LRN" autocomplete="off">
                 </div>
                 <button class="btn" onclick="processAuth()">Sign In</button>
             </div>
-
             <div id="dashboard" class="hidden">
-                <div class="session-status">
-                    <span class="pulse"></span>
-                    Session Active
+                <div style="margin-bottom: 15px;">
+                    <label style="font-size: 11px; color: rgba(255,255,255,0.5);">Student Profile</label>
+                    <div id="dashName" style="font-size: 16px; font-weight: 600;">--</div>
+                    <div id="dashTimeIn" style="font-size: 13px; color: #06b6d4; margin-top: 4px;">--</div>
+                    <div id="dashDuration" style="font-size: 13px; color: #facc15; margin-top: 2px;">Duration: 0m 0s</div>
                 </div>
-                
-                <div class="info-grid">
-                    <div class="info-item full">
-                        <label>Student Name</label>
-                        <div class="value" id="dashName">--</div>
-                    </div>
-                    <div class="info-item">
-                        <label>Time In</label>
-                        <div class="value" id="dashTime">--</div>
-                    </div>
-                    <div class="info-item">
-                        <label>Duration</label>
-                        <div class="value highlight" id="dashDuration">00:00:00</div>
-                    </div>
-                </div>
-
                 <button class="btn btn-danger" onclick="signOut()">End Session</button>
             </div>
         </div>
     </div>
 
     <script>
-        const client = supabase.createClient("https://kofyybvvzzlcxemwlaqu.supabase.co", "sb_publishable_EXyi06rbFxY4OUV1XRyfjw_omMnlxFN");
-        const params = new URLSearchParams(window.location.search);
-        const targetPC = params.get('pc') || "01";
-        let sessionStartTime = null;
-        let qrScanner = null;
-        let qrAccessGranted = false;
+        const client = (typeof supabase !== 'undefined') ? supabase.createClient("https://kofyybvvzzlcxemwlaqu.supabase.co", "sb_publishable_EXyi06rbFxY4OUV1XRyfjw_omMnlxFN") : null;
+        let targetPC = null;
+        let durationInterval = null;
+        let html5QrCode = null;
 
-        document.getElementById('pcBadge').innerText = `PC ${targetPC}`;
+        const offlineStudents = {
+            "111657140011": "LANCE M. LORENO",
+            "114479140159": "QUENIE D. REALUBIT"
+        };
 
-        // Calculate Duration
-        setInterval(() => {
-            if (sessionStartTime) {
-                const diff = new Date() - new Date(sessionStartTime);
-                const h = String(Math.floor(diff / 3600000)).padStart(2, '0');
-                const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
-                const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
-                document.getElementById('dashDuration').innerText = `${h}:${m}:${s}`;
+        window.addEventListener('load', () => { 
+            const urlParams = new URLSearchParams(window.location.search);
+            const pcParam = urlParams.get('pc');
+            
+            if (pcParam && ['01', '02', '03', '04'].includes(pcParam)) {
+                // Check kung occupied na ang URL-passed PC
+                if (localStorage.getItem(`dnhs_session_pc_${pcParam}`)) {
+                    Swal.fire("Error", `Ang PC-${pcParam} ay may active session na!`, "error");
+                } else {
+                    grantAccess(pcParam);
+                }
+            } else {
+                setTimeout(initQRScanner, 500);
             }
-        }, 1000);
+            checkExistingActiveSession();
+        });
 
-        function grantAccess() {
-            if (qrAccessGranted) return;
-            qrAccessGranted = true;
+        function checkExistingActiveSession() {
+            if (!targetPC) return;
+            const localData = localStorage.getItem(`dnhs_session_pc_${targetPC}`);
+            if (localData) {
+                try {
+                    const parsed = JSON.parse(localData);
+                    if (parsed && parsed.student_id) {
+                        restoreDashboard(parsed);
+                    }
+                } catch(e) {}
+            }
+        }
+
+        async function showPCSelector() {
+            if (html5QrCode) {
+                try { await html5QrCode.stop(); } catch(e) {}
+            }
+            let busyPCs = [];
+            for(let i=1; i<=4; i++) {
+                const pc = String(i).padStart(2, '0');
+                if (localStorage.getItem(`dnhs_session_pc_${pc}`)) busyPCs.push(pc);
+            }
+            if (client && navigator.onLine) {
+                try {
+                    const { data } = await client.from('active_sessions').select('pc_number, student_id').lte('pc_number', '04').not('student_id', 'is', null);
+                    if (data) data.forEach(s => { if (!busyPCs.includes(s.pc_number)) busyPCs.push(s.pc_number); });
+                } catch(e) {}
+            }
+
+            const grid = document.getElementById('pcGridOptions');
+            grid.innerHTML = '';
+            for(let i=1; i<=4; i++) {
+                const pc = String(i).padStart(2, '0');
+                const occupied = busyPCs.includes(pc);
+                const btn = document.createElement('button');
+                btn.className = 'btn-pc-choice' + (occupied ? ' occupied' : '');
+                btn.innerHTML = `<strong>PC-${pc}</strong><span class="pc-choice-status">${occupied ? 'Occupied' : 'Vacant'}</span>`;
+                btn.onclick = occupied ? () => Swal.fire("Occupied", `Ang PC-${pc} ay may gumagamit na.`, "error") : () => grantAccess(pc);
+                grid.appendChild(btn);
+            }
             document.getElementById('qrGateCard').classList.add('hidden');
+            document.getElementById('pcSelectorCard').classList.remove('hidden');
+        }
+
+        function backToQRGate() {
+            document.getElementById('pcSelectorCard').classList.add('hidden');
+            document.getElementById('qrGateCard').classList.remove('hidden');
+            setTimeout(initQRScanner, 300);
+        }
+
+        function grantAccess(pc) {
+            if (html5QrCode) {
+                try { html5QrCode.stop(); } catch(e) {}
+            }
+            targetPC = pc;
+            document.getElementById('pcBadge').innerText = `PC ${targetPC}`;
+            document.getElementById('pcBadgeContainer').classList.remove('hidden');
+            document.getElementById('qrGateCard').classList.add('hidden');
+            document.getElementById('pcSelectorCard').classList.add('hidden');
             document.getElementById('mainCard').classList.remove('hidden');
-            document.getElementById('pageTitle').innerText = 'Student Terminal';
-            document.getElementById('pageSubtitle').innerText = 'Enter your credentials to begin a session';
+            checkExistingActiveSession();
         }
 
         function initQRScanner() {
-            const readerEl = document.getElementById('qr-reader');
-            const statusEl = document.getElementById('scanStatus');
-            
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                statusEl.innerText = 'Camera not available.';
-                return;
-            }
-
-            function extractPC(text) {
-                let qrPC = String(text).trim();
-                if (!qrPC) return '';
-                try {
-                    const url = new URL(qrPC);
-                    qrPC = url.searchParams.get('pc') || url.pathname.replace(/[^0-9]/g, '');
-                } catch {
-                    qrPC = qrPC.replace(/[^0-9]/g, '');
-                }
-                return qrPC.trim();
-            }
-
-            function handleScanSuccess(qrPC) {
-                if (!qrPC) return;
-                if (qrPC === String(targetPC)) {
-                    statusEl.innerText = 'Access granted!';
-                    statusEl.style.color = '#06b6d4';
-                    grantAccess();
-                } else {
-                    statusEl.innerText = `Scanned PC (${qrPC}) does not match this station (${targetPC}).`;
-                    statusEl.style.color = '#ef4444';
-                }
-            }
-
-            if ('BarcodeDetector' in window) {
-                const video = document.createElement('video');
-                video.setAttribute('playsinline', 'true');
-                video.style.cssText = 'width:100%;border-radius:16px;background:#000;display:block;';
-                readerEl.innerHTML = '';
-                readerEl.appendChild(video);
-
-                let stream = null;
-                let detector = null;
-
-                try {
-                    detector = new BarcodeDetector({ formats: ['qr_code'] });
-                } catch {
-                    statusEl.innerText = 'QR scanner not available.';
-                    return;
-                }
-
-                async function startCamera() {
-                    try {
-                        stream = await navigator.mediaDevices.getUserMedia({ 
-                            video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } 
-                        });
-                        video.srcObject = stream;
-                        await video.play();
-                        statusEl.innerText = 'Camera active. Point at QR code...';
-                        detectLoop();
-                    } catch (err) {
-                        statusEl.innerText = 'Camera access denied.';
-                        console.error(err);
-                    }
-                }
-
-                async function detectLoop() {
-                    if (qrAccessGranted) return;
-                    try {
-                        const barcodes = await detector.detect(video);
-                        if (barcodes && barcodes.length > 0) {
-                            const qrPC = extractPC(barcodes[0].rawValue);
-                            if (qrPC) {
-                                if (stream) {
-                                    stream.getTracks().forEach(track => track.stop());
-                                }
-                                handleScanSuccess(qrPC);
+            if (!navigator.mediaDevices) return;
+            try {
+                html5QrCode = new Html5Qrcode("qr-reader");
+                const config = { fps: 15, qrbox: { width: 190, height: 190 } };
+                
+                html5QrCode.start(
+                    { facingMode: "environment" }, 
+                    config, 
+                    (decodedText) => {
+                        let pc = String(decodedText).replace(/[^0-9]/g, '').padStart(2, '0');
+                        if (['01','02','03','04'].includes(pc)) {
+                            if (localStorage.getItem(`dnhs_session_pc_${pc}`)) {
+                                Swal.fire("Error", "Occupied na ang PC na ito!", "error");
                                 return;
                             }
+                            html5QrCode.stop().then(() => grantAccess(pc)).catch(() => grantAccess(pc));
                         }
-                    } catch {
-                        // ignore frame errors
-                    }
-                    if (!qrAccessGranted) {
-                        requestAnimationFrame(detectLoop);
-                    }
-                }
-
-                startCamera();
-            } else if (window.Html5Qrcode) {
-                const qrScanner = new Html5QrcodeScanner('qr-reader', {
-                    fps: 20,
-                    qrbox: { width: 240, height: 240 },
-                    aspectRatio: 1.0
+                    },
+                    (errorMessage) => {}
+                ).catch(err => {
+                    html5QrCode.start({ facingMode: "user" }, config, (decodedText) => {
+                        let pc = String(decodedText).replace(/[^0-9]/g, '').padStart(2, '0');
+                        if (['01','02','03','04'].includes(pc)) {
+                            html5QrCode.stop().then(() => grantAccess(pc));
+                        }
+                    }, () => {});
                 });
-
-                qrScanner.render((decodedText) => {
-                    const qrPC = extractPC(decodedText);
-                    if (qrPC && qrPC === String(targetPC)) {
-                        qrScanner.clear().then(() => {
-                            statusEl.innerText = 'Access granted!';
-                            statusEl.style.color = '#06b6d4';
-                            grantAccess();
-                        }).catch(() => grantAccess());
-                    } else if (qrPC) {
-                        statusEl.innerText = `Scanned PC (${qrPC}) does not match this station (${targetPC}).`;
-                        statusEl.style.color = '#ef4444';
-                    }
-                }, () => {
-                    // scanning...
-                });
-            } else {
-                statusEl.innerText = 'QR scanner not supported.';
-            }
+            } catch(e) {}
         }
-
-        window.addEventListener('load', () => {
-            setTimeout(initQRScanner, 500);
-        });
 
         async function processAuth() {
             const lrn = document.getElementById('lrn').value.trim();
-            if(lrn.length < 12) return Swal.fire("Oops!", "Invalid LRN format.", "warning");
+            if(!lrn) return Swal.fire("Oops!", "Enter LRN.", "warning");
+            if(!targetPC) return Swal.fire("Error", "Station PC not identified.", "error");
 
-            Swal.fire({ title: 'Connecting...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            Swal.fire({ title: 'Checking LRN...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
-            let { data: student } = await client.from('student_roster').select('student_name').eq('lrn', lrn).single();
-            if (student) {
-                const now = new Date();
-                await client.from('active_sessions').update({ 
-                    student_id: lrn, student_name: student.student_name, time_in: now.toISOString() 
-                }).eq('pc_number', targetPC);
-                
-                sessionStartTime = now;
-                document.getElementById('gateForm').classList.add('hidden');
-                document.getElementById('dashboard').classList.remove('hidden');
-                document.getElementById('dashName').innerText = student.student_name;
-                document.getElementById('dashTime').innerText = now.toLocaleTimeString();
-                document.getElementById('pageTitle').innerText = 'Session Active';
-                document.getElementById('pageSubtitle').innerText = 'You are now signed in to this workstation';
-                Swal.close();
-            } else {
-                Swal.fire("Error", "LRN not found.", "error");
+            for(let i=1; i<=4; i++) {
+                const pKey = String(i).padStart(2, '0');
+                if (pKey !== targetPC) {
+                    const existingData = localStorage.getItem(`dnhs_session_pc_${pKey}`);
+                    if (existingData) {
+                        try {
+                            const parsed = JSON.parse(existingData);
+                            if (parsed && parsed.student_id === lrn) {
+                                Swal.close();
+                                return Swal.fire("Bawal", `Ang LRN na ito ay may active session pa sa PC-${pKey}!`, "error");
+                            }
+                        } catch(e) {}
+                    }
+                }
             }
+
+            if (client && navigator.onLine) {
+                try {
+                    const { data, error } = await client.from('active_sessions')
+                        .select('pc_number, student_id')
+                        .eq('student_id', lrn)
+                        .neq('pc_number', targetPC);
+                    
+                    if (!error && data && data.length > 0) {
+                        Swal.close();
+                        return Swal.fire("Bawal", `Ang LRN na ito ay naka-login na sa PC-${data[0].pc_number}!`, "error");
+                    }
+                } catch(e) {}
+            }
+
+            Swal.update({ title: 'Processing...' });
+
+            let studentName = offlineStudents[lrn];
+            const studentSection = "12 CSS";
+
+            if (!studentName && client && navigator.onLine) {
+                try {
+                    let { data } = await client.from('student_roster').select('student_name').eq('lrn', lrn).single();
+                    if (data) studentName = data.student_name;
+                } catch(e) {}
+            }
+
+            if (!studentName) studentName = "REGISTERED STUDENT";
+
+            const now = new Date();
+            const sessionData = { 
+                pc_number: targetPC, 
+                student_id: lrn, 
+                student_name: studentName, 
+                section: studentSection,
+                time_in: now.toISOString() 
+            };
+
+            localStorage.setItem(`dnhs_session_pc_${targetPC}`, JSON.stringify(sessionData));
+
+            if (client && navigator.onLine) {
+                try {
+                    await client.from('active_sessions').update({ 
+                        student_id: lrn, 
+                        student_name: `${studentName} (${studentSection})`, 
+                        time_in: now.toISOString() 
+                    }).eq('pc_number', targetPC);
+                } catch(e) {}
+            }
+
+            Swal.close();
+            restoreDashboard(sessionData);
+            Swal.fire("Success", "Session Started!", "success");
         }
 
-        let isLocalSignOut = false;
+        function restoreDashboard(data) {
+            document.getElementById('gateForm').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            document.getElementById('dashName').innerText = `${data.student_name} (${data.section || '12 CSS'})`;
+            
+            const timeInDate = new Date(data.time_in);
+            document.getElementById('dashTimeIn').innerText = `Time In: ${timeInDate.toLocaleTimeString()}`;
+            
+            document.getElementById('pageTitle').innerText = 'Session Active';
+            
+            if (durationInterval) clearInterval(durationInterval);
+            durationInterval = setInterval(() => {
+                const diff = Math.floor((new Date() - timeInDate) / 1000);
+                const hrs = Math.floor(diff / 3600);
+                const mins = Math.floor((diff % 3600) / 60);
+                const secs = diff % 60;
+                document.getElementById('dashDuration').innerText = `Duration: ${hrs > 0 ? hrs + 'h ' : ''}${mins}m ${secs}s`;
+            }, 1000);
+        }
 
         async function signOut() {
-            const result = await Swal.fire({ title: 'End Session?', icon: 'question', showCancelButton: true });
-            if (result.isConfirmed) {
-                isLocalSignOut = true;
-                await client.from('active_sessions').update({ student_id: null, student_name: null, time_in: null, time_out: new Date().toISOString() }).eq('pc_number', targetPC);
-                window.location.reload();
+            if (targetPC) {
+                localStorage.removeItem(`dnhs_session_pc_${targetPC}`);
+                if (client && navigator.onLine) {
+                    try {
+                        await client.from('active_sessions').update({ 
+                            student_id: null, 
+                            student_name: null, 
+                            time_in: null, 
+                            time_out: new Date().toISOString() 
+                        }).eq('pc_number', targetPC);
+                    } catch(e) {}
+                }
             }
+            window.location.reload();
         }
-
-        client.channel('active_sessions').on('postgres_changes', { event: '*', schema: 'public', table: 'active_sessions' }, (payload) => {
-            const record = payload.new || payload.old;
-            if (!isLocalSignOut && record && String(record.pc_number) === String(targetPC) && !record.student_id) {
-                Swal.fire('Session Ended', 'Your session has been ended by the admin.', 'info').then(() => window.location.reload());
-            }
-        }).subscribe();
     </script>
 </body>
 </html>
