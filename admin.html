@@ -586,8 +586,7 @@
             card.innerHTML = `
                 <h3>PC-${s.pc_number}</h3>
                 <p class="student-name">${isActive ? escapeHtml(String(s.student_name)) : 'Vacant'}</p>
-                ${timeHtml}
-                ${isActive ? `<button class="btn btn-danger" onclick="remoteSignOut('${s.pc_number}')">Force Sign Out</button>` : ''}`;
+                ${timeHtml}`;
             return card;
         }
 
@@ -641,42 +640,9 @@
             return name.includes('css') || name.includes('12');
         }
 
-        async function remoteSignOut(pcNum) {
-            try {
-                const { error } = await client.from('active_sessions').update({ student_id: null, student_name: null, time_in: null, time_out: new Date().toISOString() }).eq('pc_number', pcNum);
-                if (error) {
-                    Swal.fire('Error', 'Failed to clear session: ' + error.message, 'error');
-                    return;
-                }
-            } catch (e) {
-                Swal.fire('Error', 'Network error while clearing session.', 'error');
-                return;
-            }
-            Swal.fire('Success', 'Session cleared.', 'success');
-            setTimeout(() => {
-                fetchStatus();
-            }, 200);
-        }
-
-        function toggleLoginPassword() {
+        async function toggleLoginPassword() {
             const input = document.getElementById('adminPass');
             const btn = document.querySelector('#loginView .password-toggle');
-            const eyeOpen = btn.querySelector('.eye-open');
-            const eyeClosed = btn.querySelector('.eye-closed');
-            if (input.type === 'password') {
-                input.type = 'text';
-                eyeOpen.classList.add('hidden');
-                eyeClosed.classList.remove('hidden');
-            } else {
-                input.type = 'password';
-                eyeOpen.classList.remove('hidden');
-                eyeClosed.classList.add('hidden');
-            }
-        }
-
-        function toggleSwalPassword() {
-            const input = document.getElementById('swalNewPass');
-            const btn = document.querySelector('.swal2-password-wrapper .password-toggle');
             const eyeOpen = btn.querySelector('.eye-open');
             const eyeClosed = btn.querySelector('.eye-closed');
             if (input.type === 'password') {
@@ -714,6 +680,22 @@
             if (pass) {
                 await client.from('admin_config').update({ password: pass }).eq('id', 1);
                 Swal.fire('Updated', 'Password changed!', 'success');
+            }
+        }
+
+        function toggleSwalPassword() {
+            const input = document.getElementById('swalNewPass');
+            const btn = document.querySelector('.swal2-password-wrapper .password-toggle');
+            const eyeOpen = btn.querySelector('.eye-open');
+            const eyeClosed = btn.querySelector('.eye-closed');
+            if (input.type === 'password') {
+                input.type = 'text';
+                eyeOpen.classList.add('hidden');
+                eyeClosed.classList.remove('hidden');
+            } else {
+                input.type = 'password';
+                eyeOpen.classList.remove('hidden');
+                eyeClosed.classList.add('hidden');
             }
         }
 
