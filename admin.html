@@ -3,158 +3,432 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DNHS QRBASED ADMIN</title>
+    <title>DNHS Admin Portal</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #0b0c10; color: #fff; min-height: 100vh; padding: 24px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; max-width: 1000px; margin-inline: auto; }
-        .header h1 { font-size: 22px; font-weight: 700; color: #fff; }
-        .btn-group { display: flex; gap: 10px; }
-        .btn { padding: 10px 18px; border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer; border: none; color: #fff; }
-        .btn-primary { background: #06b6d4; color: #000; }
-        .btn-danger { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; max-width: 1000px; margin-inline: auto; }
-        .card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; min-height: 160px; }
-        .card.active { border-color: rgba(6, 182, 212, 0.4); background: rgba(6, 182, 212, 0.03); }
-        .pc-title { font-size: 14px; font-weight: 700; color: #06b6d4; margin-bottom: 8px; }
-        .student-info { font-size: 13px; color: rgba(255, 255, 255, 0.85); font-weight: 600; margin-bottom: 4px; }
-        .time-label { font-size: 11px; color: rgba(255, 255, 255, 0.4); margin-bottom: 2px; }
-        .duration-label { font-size: 12px; color: #facc15; font-weight: 500; margin-bottom: 12px; }
-        .empty-status { font-size: 12px; color: rgba(255, 255, 255, 0.3); font-style: italic; margin-bottom: 14px; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .background {
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.25), transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 115, 0.15), transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(59, 130, 246, 0.1), transparent 50%);
+            z-index: -1;
+        }
+
+        .background::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            mix-blend-mode: overlay;
+        }
+
+        .view { display: none; opacity: 0; transform: translateY(16px); transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+        .view.active { display: block; opacity: 1; transform: translateY(0); }
+
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .login-wrapper {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .glass-card h2 {
+            margin-bottom: 24px;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .nav-title {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-nav {
+            padding: 10px 18px;
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-nav:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-nav:active {
+            transform: translateY(0);
+        }
+
+        .btn-nav.danger {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+        }
+
+        .btn-nav.danger:hover {
+            background: rgba(239, 68, 68, 0.25);
+            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.2);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 24px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-left: 3px solid transparent;
+            animation: fadeInUp 0.6s ease-out forwards;
+            opacity: 0;
+        }
+
+        .card:nth-child(1) { animation-delay: 0.1s; }
+        .card:nth-child(2) { animation-delay: 0.15s; }
+        .card:nth-child(3) { animation-delay: 0.2s; }
+        .card:nth-child(4) { animation-delay: 0.25s; }
+        .card:nth-child(5) { animation-delay: 0.3s; }
+        .card:nth-child(6) { animation-delay: 0.35s; }
+        .card:nth-child(7) { animation-delay: 0.4s; }
+        .card:nth-child(8) { animation-delay: 0.45s; }
+
+        .card.active-student {
+            border-left-color: #06b6d4;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: -0.01em;
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        .card .student-name {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+
+        .card .time-info {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 4px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .card .duration {
+            font-size: 13px;
+            color: #06b6d4;
+            font-weight: 600;
+            margin-bottom: 16px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .card.vacant {
+            opacity: 0.6;
+        }
+
+        .card.vacant .student-name {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .card.vacant:hover {
+            opacity: 0.8;
+        }
+
+        .btn {
+            padding: 10px 18px;
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+            font-family: 'Inter', sans-serif;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+            width: auto;
+            padding: 8px 14px;
+            font-size: 12px;
+        }
+
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.25);
+            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.2);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 8px;
+            letter-spacing: 0.02em;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 16px 50px 16px 18px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            color: #fff;
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .input-field:focus {
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .input-field::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            padding: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .password-toggle:hover {
+            color: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .password-toggle svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .hidden { display: none !important; }
+
+        .swal2-password-wrapper {
+            position: relative;
+        }
+
+        .swal2-password-wrapper .input-field {
+            padding-right: 50px;
+        }
+
+        .swal2-password-wrapper .password-toggle {
+            right: 10px;
+            top: 60%;
+            transform: translateY(-50%);
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .nav { padding: 16px 0; }
+            .grid { grid-template-columns: 1fr; }
+            .glass-card { padding: 32px; }
+        }
+
+        .monitor-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .monitor-header h1 {
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .monitor-header p {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
+    <div class="background"></div>
 
-    <div class="header">
-        <h1>DNHS Admin Portal</h1>
-        <div class="btn-group">
-            <button class="btn btn-primary" onclick="loadActiveSessions()">Refresh Status</button>
+    <div id="loginView" class="view active">
+        <div class="login-wrapper">
+            <div class="glass-card">
+                <h2>Admin Access</h2>
+                <div class="input-group">
+                    <div class="password-wrapper">
+                        <input type="password" id="adminPass" class="input-field" placeholder="Enter Password">
+                        <button class="password-toggle" onclick="toggleLoginPassword()" type="button" aria-label="Toggle password visibility">
+                            <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <svg class="eye-closed hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.9 9.9 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <button class="btn" onclick="verifyLogin()">Enter Dashboard</button>
+            </div>
         </div>
     </div>
 
-    <div class="grid" id="adminGrid"></div>
+    <div id="dashView" class="view">
+        <div class="admin-container">
+            <div class="monitor-header">
+                <h1>ADMIN LIVE MONITOR</h1>
+                <p>Real-time PC session tracking</p>
+            </div>
+            <div class="nav" style="padding: 0 0 24px 0; margin-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.06);">
+                <div></div>
+                <div class="nav-actions">
+                    <button class="btn-nav" onclick="resetPassword()">Reset Password</button>
+                    <button class="btn-nav danger" onclick="window.location.reload()">Logout</button>
+                </div>
+            </div>
+            <div class="grid" id="monitorGrid"></div>
+        </div>
+    </div>
 
     <script>
-        const client = (typeof supabase !== 'undefined') ? supabase.createClient("https://kofyybvvzzlcxemwlaqu.supabase.co", "sb_publishable_EXyi06rbFxY4OUV1XRyfjw_omMnlxFN") : null;
-        let adminInterval = null;
-        let liveDataCache = {};
+        const client = supabase.createClient("https://kofyybvvzzlcxemwlaqu.supabase.co", "sb_publishable_EXyi06rbFxY4OUV1XRyfjw_omMnlxFN");
 
-        window.addEventListener('load', () => {
-            loadActiveSessions();
-            if (adminInterval) clearInterval(adminInterval);
-            adminInterval = setInterval(loadActiveSessions, 3000);
-        });
-
-        async function loadActiveSessions() {
-            liveDataCache = {};
-
-            // 1. Unang basahin ang localStorage para laging may laman kahit offline
-            for (let i = 1; i <= 4; i++) {
-                const pc = String(i).padStart(2, '0');
-                const localData = localStorage.getItem(`dnhs_session_pc_${pc}`);
-                if (localData) {
-                    try {
-                        const parsed = JSON.parse(localData);
-                        if (parsed && parsed.student_id) {
-                            liveDataCache[pc] = {
-                                pc_number: pc,
-                                student_id: parsed.student_id,
-                                student_name: `${parsed.student_name} (${parsed.section || '12 CSS'})`,
-                                time_in: parsed.time_in
-                            };
-                        }
-                    } catch(e) {}
-                }
-            }
-
-            // 2. Subukan i-fetch sa Supabase kung online
-            if (client && navigator.onLine) {
-                try {
-                    const { data, error } = await client.from('active_sessions').select('*').lte('pc_number', '04');
-                    if (!error && data) {
-                        data.forEach(s => {
-                            if (s.student_id && s.student_name) {
-                                liveDataCache[s.pc_number] = s;
-                            }
-                        });
-                    }
-                } catch(e) {}
-            }
-
-            renderAdminGrid();
-        }
-
-        function renderAdminGrid() {
-            const grid = document.getElementById('adminGrid');
-            grid.innerHTML = '';
-
-            for (let i = 1; i <= 4; i++) {
-                const pc = String(i).padStart(2, '0');
-                const session = liveDataCache[pc] || { pc_number: pc, student_id: null, student_name: null, time_in: null };
-                
-                const isOccupied = session.student_id && session.student_name;
-                
-                const card = document.createElement('div');
-                card.className = 'card' + (isOccupied ? ' active' : '');
-                
-                let detailsHTML = `<div class="empty-status">Vacant Station</div>`;
-                let actionHTML = '';
-
-                if (isOccupied) {
-                    const timeInStr = session.time_in ? new Date(session.time_in).toLocaleTimeString() : '-';
-                    let durationStr = '0m 0s';
-                    
-                    if (session.time_in) {
-                        const diff = Math.floor((new Date() - new Date(session.time_in)) / 1000);
-                        const hrs = Math.floor(diff / 3600);
-                        const mins = Math.floor((diff % 3600) / 60);
-                        const secs = diff % 60;
-                        durationStr = `${hrs > 0 ? hrs + 'h ' : ''}${mins}m ${secs}s`;
-                    }
-
-                    detailsHTML = `
-                        <div>
-                            <div class="student-info">${escapeHtml(session.student_name)}</div>
-                            <div class="time-label">Time In: ${timeInStr}</div>
-                            <div class="duration-label">Duration: ${durationStr}</div>
-                        </div>
-                    `;
-                    actionHTML = `<button class="btn btn-danger" onclick="forceSignOut('${pc}')">Force Sign Out</button>`;
-                }
-
-                card.innerHTML = `
-                    <div>
-                        <div class="pc-title">PC-${pc}</div>
-                        ${detailsHTML}
-                    </div>
-                    ${actionHTML}
-                `;
-                grid.appendChild(card);
+        async function verifyLogin() {
+            const pass = document.getElementById('adminPass').value;
+            const { data, error } = await client.from('admin_config').select('password').eq('id', 1).single();
+            if (data && pass === data.password) {
+                document.getElementById('loginView').classList.remove('active');
+                document.getElementById('dashView').classList.add('active');
+                fetchStatus();
+            } else {
+                Swal.fire('Error', 'Invalid Password', 'error');
             }
         }
 
-        async function forceSignOut(pc) {
-            Swal.fire({ title: 'Signing out...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-            
-            if (client && navigator.onLine) {
-                try {
-                    await client.from('active_sessions').update({ 
-                        student_id: null, 
-                        student_name: null, 
-                        time_in: null, 
-                        time_out: new Date().toISOString() 
-                    }).eq('pc_number', pc);
-                } catch(e) {}
-            }
-            
-            localStorage.removeItem(`dnhs_session_pc_${pc}`);
-
-            Swal.close();
-            Swal.fire("Success", `Na-force sign out ang PC-${pc}`, "success");
-            loadActiveSessions();
+        function formatTime(iso) {
+            if (!iso) return '--';
+            const d = new Date(iso);
+            return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
         }
 
         function escapeHtml(text) {
@@ -162,6 +436,139 @@
             div.textContent = text;
             return div.innerHTML;
         }
+
+        let previousSessions = null;
+        let durationIntervalStarted = false;
+
+        function startDurationTicker() {
+            if (durationIntervalStarted) return;
+            durationIntervalStarted = true;
+            setInterval(() => {
+                document.querySelectorAll('.card[data-active="true"] .duration').forEach(el => {
+                    const iso = el.getAttribute('data-time-in');
+                    if (!iso) return;
+                    const diff = new Date() - new Date(iso);
+                    const h = String(Math.floor(diff / 3600000)).padStart(2, '0');
+                    const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+                    const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+                    el.innerText = `Duration: ${h}h ${m}m ${s}s`;
+                });
+            }, 1000);
+        }
+
+        async function fetchStatus() {
+            const { data: sessions } = await client.from('active_sessions').select('*');
+            const grid = document.getElementById('monitorGrid');
+            const sorted = sessions ? sessions.sort((a,b) => a.pc_number - b.pc_number) : [];
+
+            if (!previousSessions || JSON.stringify(previousSessions) !== JSON.stringify(sorted)) {
+                previousSessions = sorted;
+                grid.innerHTML = '';
+                if (sorted.length > 0) {
+                    sorted.forEach(s => {
+                        const isActive = !!s.student_id;
+                        const timeInAttr = s.time_in || '';
+                        let timeHtml = '';
+                        if (isActive) {
+                            timeHtml = `
+                                <p class="time-info">Time In: ${formatTime(s.time_in)}</p>
+                                <p class="duration" data-time-in="${escapeHtml(String(timeInAttr))}">Duration: 00h 00m 00s</p>`;
+                        } else if (s.time_out) {
+                            timeHtml = `<p class="time-info">Time Out: ${formatTime(s.time_out)}</p>`;
+                        }
+                        const card = document.createElement('div');
+                        card.className = 'card' + (isActive ? ' active-student' : ' vacant');
+                        card.setAttribute('data-pc', s.pc_number);
+                        card.setAttribute('data-active', String(isActive));
+                        card.innerHTML = `
+                            <h3>PC-${s.pc_number}</h3>
+                            <p class="student-name">${isActive ? escapeHtml(String(s.student_name)) : 'Vacant'}</p>
+                            ${timeHtml}
+                            ${isActive ? `<button class="btn btn-danger" onclick="remoteSignOut('${s.pc_number}')">Force Sign Out</button>` : ''}`;
+                        grid.appendChild(card);
+                    });
+                }
+            }
+            startDurationTicker();
+        }
+
+        async function remoteSignOut(pcNum) {
+            try {
+                const { error } = await client.from('active_sessions').update({ student_id: null, student_name: null, time_in: null, time_out: new Date().toISOString() }).eq('pc_number', pcNum);
+                if (error) {
+                    Swal.fire('Error', 'Failed to clear session: ' + error.message, 'error');
+                    return;
+                }
+            } catch (e) {
+                Swal.fire('Error', 'Network error while clearing session.', 'error');
+                return;
+            }
+            Swal.fire('Success', 'Session cleared.', 'success');
+            setTimeout(() => {
+                fetchStatus();
+            }, 200);
+        }
+
+        function toggleLoginPassword() {
+            const input = document.getElementById('adminPass');
+            const btn = document.querySelector('#loginView .password-toggle');
+            const eyeOpen = btn.querySelector('.eye-open');
+            const eyeClosed = btn.querySelector('.eye-closed');
+            if (input.type === 'password') {
+                input.type = 'text';
+                eyeOpen.classList.add('hidden');
+                eyeClosed.classList.remove('hidden');
+            } else {
+                input.type = 'password';
+                eyeOpen.classList.remove('hidden');
+                eyeClosed.classList.add('hidden');
+            }
+        }
+
+        function toggleSwalPassword() {
+            const input = document.getElementById('swalNewPass');
+            const btn = document.querySelector('.swal2-password-wrapper .password-toggle');
+            const eyeOpen = btn.querySelector('.eye-open');
+            const eyeClosed = btn.querySelector('.eye-closed');
+            if (input.type === 'password') {
+                input.type = 'text';
+                eyeOpen.classList.add('hidden');
+                eyeClosed.classList.remove('hidden');
+            } else {
+                input.type = 'password';
+                eyeOpen.classList.remove('hidden');
+                eyeClosed.classList.add('hidden');
+            }
+        }
+
+        async function resetPassword() {
+            const result = await Swal.fire({
+                title: 'New Password',
+                showCancelButton: true,
+                html: `
+                    <div class="swal2-password-wrapper">
+                        <input type="password" id="swalNewPass" class="input-field" placeholder="Enter new password" style="width: 100%; margin-top: 12px;">
+                        <button class="password-toggle" onclick="toggleSwalPassword()" type="button" aria-label="Toggle password visibility" style="position: absolute; right: 10px; top: 60%; transform: translateY(-50%);">
+                            <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <svg class="eye-closed hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.9 9.9 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                        </button>
+                    </div>
+                `,
+                preConfirm: () => {
+                    return document.getElementById('swalNewPass').value;
+                },
+                customClass: {
+                    popup: 'swal2-popup-custom'
+                }
+            });
+            const pass = result.value;
+            if (pass) {
+                await client.from('admin_config').update({ password: pass }).eq('id', 1);
+                Swal.fire('Updated', 'Password changed!', 'success');
+            }
+        }
+
+        client.channel('active_sessions').on('postgres_changes', { event: '*', schema: 'public', table: 'active_sessions' }, fetchStatus).subscribe();
     </script>
 </body>
 </html>
