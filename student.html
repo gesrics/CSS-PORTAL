@@ -2,328 +2,671 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DNHS CSS QRBASED</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    <title>DNHS Terminal</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #000; color: #fff; min-height: 100vh; display: flex; justify-content: center; align-items: center; }
-        .background { position: fixed; inset: 0; background: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.25), transparent 50%), radial-gradient(circle at 80% 20%, rgba(255, 119, 115, 0.15), transparent 50%); z-index: -1; }
-        .terminal-container { width: 100%; max-width: 420px; padding: 20px; }
-        .pc-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 100px; padding: 8px 20px; font-size: 13px; color: rgba(255, 255, 255, 0.8); margin-bottom: 24px; }
-        .pc-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: #06b6d4; }
-        .glass-card { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 32px; }
-        .input-group { margin-bottom: 20px; }
-        .input-group label { display: block; font-size: 13px; color: rgba(255, 255, 255, 0.7); margin-bottom: 8px; }
-        .input-group input { width: 100%; padding: 16px 18px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; color: #fff; font-size: 15px; outline: none; }
-        .btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #3b82f6, #06b6d4); border: none; border-radius: 14px; font-weight: 600; font-size: 15px; cursor: pointer; color: #fff; }
-        .btn-offline-bypass { margin-top: 10px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); font-size: 13px; }
-        .btn-danger { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; }
-        .pc-grid-select { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
-        .btn-pc-choice { padding: 14px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; color: #fff; font-weight: 600; cursor: pointer; text-align: left; }
-        .btn-pc-choice.occupied { opacity: 0.5; border-color: rgba(239, 68, 68, 0.3); cursor: not-allowed; }
-        .pc-choice-status { font-size: 11px; display: block; margin-top: 4px; color: rgba(255,255,255,0.5); }
+        :root {
+            --bg: #050507;
+            --glass: rgba(255, 255, 255, 0.055);
+            --glass-strong: rgba(255, 255, 255, 0.08);
+            --border: rgba(255, 255, 255, 0.10);
+            --border-soft: rgba(255, 255, 255, 0.06);
+            --text: #f5f5f7;
+            --text-dim: rgba(245, 245, 247, 0.55);
+            --text-faint: rgba(245, 245, 247, 0.35);
+            --accent: #0a84ff;
+            --accent-2: #06b6d4;
+            --danger: #ff453a;
+            --ease: cubic-bezier(0.4, 0, 0.2, 1);
+            --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        html, body { height: 100%; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+        }
+
+        /* ---- Ambient background ---- */
+        .background {
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(60% 50% at 18% 82%, rgba(10, 132, 255, 0.22), transparent 60%),
+                radial-gradient(55% 45% at 82% 18%, rgba(6, 182, 212, 0.16), transparent 60%),
+                radial-gradient(70% 60% at 50% 50%, rgba(120, 80, 220, 0.08), transparent 70%);
+            z-index: 0;
+            animation: drift 18s ease-in-out infinite alternate;
+        }
+        @keyframes drift {
+            0% { transform: scale(1) translate(0, 0); }
+            100% { transform: scale(1.08) translate(-1.5%, 1.5%); }
+        }
+        .background::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            opacity: 0.025;
+            mix-blend-mode: overlay;
+        }
+
+        /* ---- Splash ---- */
+        .splash {
+            position: fixed;
+            inset: 0;
+            z-index: 60;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 26px;
+            background: var(--bg);
+            transition: opacity 0.7s var(--ease), visibility 0.7s var(--ease);
+        }
+        .splash.hide { opacity: 0; visibility: hidden; }
+        .splash-logo {
+            width: 92px; height: 92px;
+            border-radius: 26px;
+            background: linear-gradient(145deg, #0a84ff, #06b6d4);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 20px 60px rgba(10, 132, 255, 0.35), inset 0 1px 0 rgba(255,255,255,0.4);
+            animation: logoIn 0.9s var(--ease-out) both;
+        }
+        @keyframes logoIn {
+            from { opacity: 0; transform: scale(0.8) translateY(10px); }
+            to { opacity: 1; transform: none; }
+        }
+        .splash-logo svg { width: 46px; height: 46px; }
+        .splash-title {
+            font-size: 19px; font-weight: 600; letter-spacing: -0.01em;
+            color: var(--text); opacity: 0.9;
+            animation: fadeUp 0.8s 0.15s var(--ease-out) both;
+        }
+        .splash-spinner {
+            width: 26px; height: 26px;
+            border-radius: 50%;
+            border: 2.5px solid rgba(255,255,255,0.12);
+            border-top-color: var(--accent);
+            animation: spin 0.9s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+        /* ---- Terminal shell ---- */
+        .terminal {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 430px;
+            padding: 22px 18px;
+            padding-top: max(22px, env(safe-area-inset-top));
+            padding-bottom: max(22px, env(safe-area-inset-bottom));
+        }
+
+        .terminal-header { text-align: center; margin-bottom: 26px; }
+        .pc-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            padding: 7px 16px;
+            font-size: 12.5px; font-weight: 500; letter-spacing: 0.01em;
+            color: var(--text-dim);
+            margin-bottom: 20px;
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+        }
+        .pc-badge .dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: var(--accent-2);
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.7);
+            animation: pulse 2.4s var(--ease) infinite;
+        }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+        .terminal-header h1 {
+            font-size: 30px; font-weight: 700; letter-spacing: -0.025em;
+            line-height: 1.1;
+        }
+        .terminal-header p {
+            margin-top: 7px; font-size: 14px; color: var(--text-dim); font-weight: 400;
+        }
+
+        /* ---- Animated view system ---- */
+        .anim {
+            opacity: 0;
+            transform: translateY(18px) scale(0.985);
+            transition: opacity 0.55s var(--ease), transform 0.55s var(--ease);
+            pointer-events: none;
+        }
+        .anim.show { opacity: 1; transform: none; pointer-events: auto; }
         .hidden { display: none !important; }
-        
-        /* Pro Scanner UI Customizations */
-        #qr-reader { border: none !important; background: transparent !important; }
-        #qr-reader__dashboard { padding: 0 !important; }
-        #qr-reader__dashboard_section_csr span { color: rgba(255,255,255,0.7) !important; font-size: 12px !important; }
-        #qr-reader button { padding: 8px 16px !important; background: rgba(255,255,255,0.1) !important; border: 1px solid rgba(255,255,255,0.2) !important; border-radius: 8px !important; color: #fff !important; font-weight: 500 !important; cursor: pointer !important; margin-top: 8px !important; }
-        #qr-reader select { padding: 8px !important; background: rgba(0,0,0,0.5) !important; color: #fff !important; border: 1px solid rgba(255,255,255,0.2) !important; border-radius: 8px !important; margin-bottom: 8px !important; }
+
+        /* ---- Glass card ---- */
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(38px) saturate(180%);
+            -webkit-backdrop-filter: blur(38px) saturate(180%);
+            border: 1px solid var(--border);
+            border-radius: 26px;
+            padding: 30px 26px;
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        /* ---- QR Gate ---- */
+        .gate-icon {
+            width: 54px; height: 54px; margin: 0 auto 18px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 16px;
+            background: var(--glass-strong);
+            border: 1px solid var(--border-soft);
+            color: var(--text);
+        }
+        .gate-icon svg { width: 26px; height: 26px; }
+        .gate-card { text-align: center; }
+        .gate-card h2 { font-size: 21px; font-weight: 700; letter-spacing: -0.02em; }
+        .gate-card .sub { margin-top: 8px; font-size: 13.5px; color: var(--text-dim); line-height: 1.5; }
+
+        .scanner-wrap {
+            position: relative;
+            margin: 22px auto 4px;
+            width: 100%;
+            max-width: 280px;
+            aspect-ratio: 1 / 1;
+        }
+        #qr-reader {
+            width: 100%; height: 100%;
+            border-radius: 22px;
+            overflow: hidden;
+            background: #000;
+            border: 1px solid var(--border-soft);
+            position: relative;
+        }
+        #qr-reader video {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover;
+            border-radius: 22px;
+            display: block;
+        }
+        .scan-frame {
+            position: absolute; inset: 0;
+            border-radius: 22px;
+            pointer-events: none;
+            box-shadow: inset 0 0 0 1.5px rgba(10, 132, 255, 0.55);
+        }
+        .scan-frame .corner {
+            position: absolute; width: 26px; height: 26px;
+            border: 2.5px solid var(--accent);
+            border-radius: 6px;
+        }
+        .scan-frame .tl { top: 14px; left: 14px; border-right: none; border-bottom: none; }
+        .scan-frame .tr { top: 14px; right: 14px; border-left: none; border-bottom: none; }
+        .scan-frame .bl { bottom: 14px; left: 14px; border-right: none; border-top: none; }
+        .scan-frame .br { bottom: 14px; right: 14px; border-left: none; border-top: none; }
+        .scan-line {
+            position: absolute; left: 12%; right: 12%; height: 2px; top: 10%;
+            background: linear-gradient(90deg, transparent, var(--accent-2), transparent);
+            box-shadow: 0 0 14px rgba(6, 182, 212, 0.8);
+            border-radius: 2px;
+            animation: scanMove 2.6s var(--ease) infinite;
+        }
+        @keyframes scanMove { 0% { top: 10%; } 50% { top: 90%; } 100% { top: 10%; } }
+
+        .scan-status {
+            margin-top: 14px; font-size: 13px; font-weight: 500;
+            color: var(--text-dim); min-height: 18px;
+            transition: color 0.3s var(--ease);
+        }
+
+        /* ---- Auth / Dashboard ---- */
+        .input-group { margin-bottom: 18px; text-align: left; }
+        .input-group label {
+            display: block; font-size: 12.5px; font-weight: 500;
+            color: var(--text-dim); margin-bottom: 9px; letter-spacing: 0.02em;
+        }
+        .input-group input {
+            width: 100%; padding: 16px 18px;
+            background: rgba(0, 0, 0, 0.28);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            color: var(--text); font-size: 16px; font-family: inherit;
+            letter-spacing: 0.04em;
+            transition: border-color 0.3s var(--ease), box-shadow 0.3s var(--ease), background 0.3s var(--ease);
+            outline: none;
+        }
+        .input-group input:focus {
+            border-color: rgba(10, 132, 255, 0.55);
+            box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.14);
+            background: rgba(0, 0, 0, 0.4);
+        }
+        .input-group input::placeholder { color: var(--text-faint); letter-spacing: 0; }
+
+        .btn {
+            width: 100%; padding: 16px;
+            background: linear-gradient(135deg, #0a84ff, #06b6d4);
+            border: none; border-radius: 15px;
+            font-weight: 600; font-size: 15.5px; font-family: inherit; letter-spacing: -0.01em;
+            color: #fff; cursor: pointer;
+            transition: transform 0.25s var(--ease), box-shadow 0.35s var(--ease), filter 0.25s var(--ease);
+            box-shadow: 0 10px 30px rgba(10, 132, 255, 0.28);
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 14px 38px rgba(10, 132, 255, 0.4); filter: brightness(1.05); }
+        .btn:active { transform: translateY(0) scale(0.985); box-shadow: 0 6px 18px rgba(10, 132, 255, 0.3); }
+        .btn-danger {
+            background: rgba(255, 69, 58, 0.14);
+            border: 1px solid rgba(255, 69, 58, 0.32);
+            color: #ff9a92; box-shadow: none;
+        }
+        .btn-danger:hover { background: rgba(255, 69, 58, 0.22); box-shadow: 0 10px 28px rgba(255, 69, 58, 0.2); }
+        .btn-danger:active { background: rgba(255, 69, 58, 0.28); }
+
+        .session-status {
+            display: inline-flex; align-items: center; gap: 9px;
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.22);
+            border-radius: 100px; padding: 7px 16px;
+            font-size: 11.5px; font-weight: 600; color: var(--accent-2);
+            text-transform: uppercase; letter-spacing: 0.08em;
+            margin-bottom: 22px;
+        }
+        .session-status .pulse {
+            width: 8px; height: 8px; border-radius: 50%; background: var(--accent-2);
+            animation: pulse 2s var(--ease) infinite;
+        }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 22px 0; }
+        .info-item {
+            background: rgba(0, 0, 0, 0.22);
+            border: 1px solid var(--border-soft);
+            border-radius: 16px; padding: 15px;
+            transition: border-color 0.3s var(--ease), transform 0.3s var(--ease);
+        }
+        .info-item:hover { border-color: var(--border); }
+        .info-item.full { grid-column: 1 / -1; }
+        .info-item label {
+            display: block; font-size: 10.5px; font-weight: 600;
+            color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 7px;
+        }
+        .info-item .value { font-size: 15px; font-weight: 600; color: var(--text); }
+        .info-item .value.highlight {
+            color: var(--accent-2); font-variant-numeric: tabular-nums;
+            font-family: 'SF Mono', ui-monospace, 'Inter', monospace; letter-spacing: 0.02em;
+        }
+
+        /* ---- Loading overlay ---- */
+        .loader {
+            position: fixed; inset: 0; z-index: 55;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+            background: rgba(5, 5, 7, 0.55);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.4s var(--ease);
+        }
+        .loader.show { opacity: 1; pointer-events: auto; }
+        .loader-ring {
+            width: 44px; height: 44px; border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.12);
+            border-top-color: var(--accent);
+            animation: spin 0.85s linear infinite;
+        }
+        .loader-label { font-size: 14px; font-weight: 500; color: var(--text-dim); letter-spacing: 0.01em; }
+
+        @media (max-width: 420px) {
+            .terminal { padding: 18px 14px; }
+            .glass-card { padding: 26px 20px; }
+            .info-grid { grid-template-columns: 1fr; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            * { animation-duration: 0.001ms !important; transition-duration: 0.15s !important; }
+        }
     </style>
 </head>
 <body>
     <div class="background"></div>
 
-    <div class="terminal-container">
-        <div style="text-align: center; margin-bottom: 32px;">
-            <div class="pc-badge hidden" id="pcBadgeContainer"><span class="dot"></span><span id="pcBadge">PC STATION</span></div>
-            <h1 id="pageTitle" style="font-size: 32px; font-weight: 700; margin-bottom: 8px;">STUDENT WORKPLACE</h1>
-            <p id="pageSubtitle" style="font-size: 14px; color: rgba(255, 255, 255, 0.5);">SCAN STATION QR CODE</p>
+    <!-- Splash -->
+    <div class="splash" id="splash">
+        <div class="splash-logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2.5" y="4" width="19" height="13" rx="2.5"></rect>
+                <path d="M8 21h8M12 17v4"></path>
+            </svg>
+        </div>
+        <div class="splash-title">DNHS Computer Lab</div>
+        <div class="splash-spinner"></div>
+    </div>
+
+    <!-- Terminal -->
+    <div class="terminal">
+        <div class="terminal-header">
+            <div class="pc-badge"><span class="dot"></span><span id="pcBadge">PC STATION</span></div>
+            <h1 id="pageTitle">Student Terminal</h1>
+            <p id="pageSubtitle">Scan the station QR code to begin</p>
         </div>
 
-        <div class="glass-card" id="qrGateCard">
-            <h2>ACCESS BLOCKED </h2>
-            <p style="font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 4px; margin-bottom: 16px;">SCAN STATION QR CODE OR USE OFFLINE MODE</p>
-            <div id="qr-reader" style="border-radius: 16px; overflow: hidden; min-height: 180px;"></div>
-            <button class="btn btn-offline-bypass" onclick="showPCSelector()" style="margin-top: 16px;">OFFLINE MODE</button>
-        </div>
+        <!-- QR Gate -->
+        <section class="glass-card gate-card anim" id="gateCard">
+            <div class="gate-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2.5"></rect>
+                    <path d="M7 11V7.5a5 5 0 0 1 10 0V11"></path>
+                </svg>
+            </div>
+            <h2>Access Blocked</h2>
+            <p class="sub">Scan the QR code displayed at this station to unlock the terminal.</p>
 
-        <div class="glass-card hidden" id="pcSelectorCard">
-            <h2>Select PC Station</h2>
-            <p style="font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 4px; margin-bottom: 16px;">cHOOSE VACANT PC</p>
-            <div class="pc-grid-select" id="pcGridOptions"></div>
-            <button class="btn btn-offline-bypass" onclick="backToQRGate()">Back to QR Scanner</button>
-        </div>
+            <div class="scanner-wrap">
+                <div id="qr-reader"></div>
+                <div class="scan-frame">
+                    <span class="corner tl"></span><span class="corner tr"></span>
+                    <span class="corner bl"></span><span class="corner br"></span>
+                    <span class="scan-line"></span>
+                </div>
+            </div>
+            <p class="scan-status" id="scanStatus">Initializing camera…</p>
+        </section>
 
-        <div class="glass-card hidden" id="mainCard">
-            <div id="gateForm">
+        <!-- Main -->
+        <section class="glass-card anim hidden" id="mainCard">
+            <div class="anim" id="authView">
                 <div class="input-group">
-                    <label>LRN</label>
-                    <input type="text" id="lrn" placeholder="Enter LRN" autocomplete="off">
+                    <label for="lrn">Learner Reference Number</label>
+                    <input type="text" id="lrn" inputmode="numeric" placeholder="Enter your 12-digit LRN" maxlength="12" autocomplete="off">
                 </div>
-                <button class="btn" onclick="processAuth()">Sign In</button>
+                <button class="btn" id="signInBtn">Sign In</button>
             </div>
-            <div id="dashboard" class="hidden">
-                <div style="margin-bottom: 15px;">
-                    <label style="font-size: 11px; color: rgba(255,255,255,0.5);">Student Profile</label>
-                    <div id="dashName" style="font-size: 16px; font-weight: 600;">--</div>
-                    <div id="dashTimeIn" style="font-size: 13px; color: #06b6d4; margin-top: 4px;">--</div>
-                    <div id="dashDuration" style="font-size: 13px; color: #facc15; margin-top: 2px;">Duration: 0m 0s</div>
+
+            <div class="anim hidden" id="dashView">
+                <div class="session-status"><span class="pulse"></span>Session Active</div>
+                <div class="info-grid">
+                    <div class="info-item full">
+                        <label>Student</label>
+                        <div class="value" id="dashName">—</div>
+                    </div>
+                    <div class="info-item">
+                        <label>Time In</label>
+                        <div class="value" id="dashTime">—</div>
+                    </div>
+                    <div class="info-item">
+                        <label>Duration</label>
+                        <div class="value highlight" id="dashDuration">00:00:00</div>
+                    </div>
                 </div>
-                <button class="btn btn-danger" onclick="signOut()">End Session</button>
+                <button class="btn btn-danger" id="signOutBtn">End Session</button>
             </div>
-        </div>
+        </section>
+    </div>
+
+    <!-- Loading overlay -->
+    <div class="loader" id="loader">
+        <div class="loader-ring"></div>
+        <div class="loader-label" id="loaderLabel">Authenticating…</div>
     </div>
 
     <script>
-        const client = (typeof supabase !== 'undefined') ? supabase.createClient("https://kofyybvvzzlcxemwlaqu.supabase.co", "sb_publishable_EXyi06rbFxY4OUV1XRyfjw_omMnlxFN") : null;
-        let targetPC = null;
-        let durationInterval = null;
-        let html5QrCode = null;
+        // ---------- Supabase ----------
+        const client = supabase.createClient(
+            "https://kofyybvvzzlcxemwlaqu.supabase.co",
+            "sb_publishable_EXyi06rbFxY4OUV1XRyfjw_omMnlxFN"
+        );
 
-        const offlineStudents = {
-         ​"111657140011": "LANCE M. LORENO",
-"114479140159": "QUENIE D. REALUBIT",
-"111670140069": "HALIA QUEEN T. BARANQUIL",
-"111669140011": "GABRIEL A. MANDANE",
-"111660140027": "KIM LOUIS L. MANSOS",
-"111662140084": "MARK JOSEPH E. MANILA",
-"111649140009": "ANGEL SHANE R. AIS",
-"114477140158": "RAY JOHN M. BENDAÑA",
-"111662140124": "JOHN CARL M. NAJE",
-"111658140062": "JOHN DRAIVE N. ESTUYE",
-"136891140624": "ALKHARIM JHARO ISAAC"
-        };
+        // ---------- State ----------
+        const params = new URLSearchParams(window.location.search);
+        const targetPC = (params.get('pc') || "01").padStart(2, '0');
+        let sessionStartTime = null;
+        let qrAccessGranted = false;
+        let html5Qr = null;
+        let barcodeStream = null;
+        let rafId = null;
+        let isLocalSignOut = false;
 
-        window.addEventListener('load', () => { 
-            const urlParams = new URLSearchParams(window.location.search);
-            const pcParam = urlParams.get('pc');
-            
-            if (pcParam && ['01', '02', '03', '04'].includes(pcParam)) {
-                // Check kung occupied na ang URL-passed PC
-                if (localStorage.getItem(`dnhs_session_pc_${pcParam}`)) {
-                    Swal.fire("Error", `Ang PC-${pcParam} ay may active session na!`, "error");
-                } else {
-                    grantAccess(pcParam);
-                }
-            } else {
-                setTimeout(initQRScanner, 500);
-            }
-            checkExistingActiveSession();
-        });
+        document.getElementById('pcBadge').textContent = `PC ${targetPC}`;
 
-        function checkExistingActiveSession() {
-            if (!targetPC) return;
-            const localData = localStorage.getItem(`dnhs_session_pc_${targetPC}`);
-            if (localData) {
-                try {
-                    const parsed = JSON.parse(localData);
-                    if (parsed && parsed.student_id) {
-                        restoreDashboard(parsed);
-                    }
-                } catch(e) {}
-            }
+        // ---------- View transitions ----------
+        function showView(el) {
+            el.classList.remove('hidden');
+            requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('show')));
+        }
+        function hideView(el, done) {
+            el.classList.remove('show');
+            setTimeout(() => { el.classList.add('hidden'); if (done) done(); }, 420);
+        }
+        function switchView(from, to) {
+            hideView(from, () => showView(to));
+        }
+        function showLoader(label) {
+            if (label) document.getElementById('loaderLabel').textContent = label;
+            document.getElementById('loader').classList.add('show');
+        }
+        function hideLoader() {
+            document.getElementById('loader').classList.remove('show');
+        }
+        function setStatus(msg, color) {
+            const el = document.getElementById('scanStatus');
+            el.textContent = msg;
+            el.style.color = color || 'var(--text-dim)';
         }
 
-        async function showPCSelector() {
-            if (html5QrCode) {
-                try { await html5QrCode.stop(); } catch(e) {}
-            }
-            let busyPCs = [];
-            for(let i=1; i<=4; i++) {
-                const pc = String(i).padStart(2, '0');
-                if (localStorage.getItem(`dnhs_session_pc_${pc}`)) busyPCs.push(pc);
-            }
-            if (client && navigator.onLine) {
-                try {
-                    const { data } = await client.from('active_sessions').select('pc_number, student_id').lte('pc_number', '04').not('student_id', 'is', null);
-                    if (data) data.forEach(s => { if (!busyPCs.includes(s.pc_number)) busyPCs.push(s.pc_number); });
-                } catch(e) {}
-            }
-
-            const grid = document.getElementById('pcGridOptions');
-            grid.innerHTML = '';
-            for(let i=1; i<=4; i++) {
-                const pc = String(i).padStart(2, '0');
-                const occupied = busyPCs.includes(pc);
-                const btn = document.createElement('button');
-                btn.className = 'btn-pc-choice' + (occupied ? ' occupied' : '');
-                btn.innerHTML = `<strong>PC-${pc}</strong><span class="pc-choice-status">${occupied ? 'Occupied' : 'Vacant'}</span>`;
-                btn.onclick = occupied ? () => Swal.fire("Occupied", `Ang PC-${pc} ay may gumagamit na.`, "error") : () => grantAccess(pc);
-                grid.appendChild(btn);
-            }
-            document.getElementById('qrGateCard').classList.add('hidden');
-            document.getElementById('pcSelectorCard').classList.remove('hidden');
-        }
-
-        function backToQRGate() {
-            document.getElementById('pcSelectorCard').classList.add('hidden');
-            document.getElementById('qrGateCard').classList.remove('hidden');
-            setTimeout(initQRScanner, 300);
-        }
-
-        function grantAccess(pc) {
-            if (html5QrCode) {
-                try { html5QrCode.stop(); } catch(e) {}
-            }
-            targetPC = pc;
-            document.getElementById('pcBadge').innerText = `PC ${targetPC}`;
-            document.getElementById('pcBadgeContainer').classList.remove('hidden');
-            document.getElementById('qrGateCard').classList.add('hidden');
-            document.getElementById('pcSelectorCard').classList.add('hidden');
-            document.getElementById('mainCard').classList.remove('hidden');
-            checkExistingActiveSession();
-        }
-
-        function initQRScanner() {
-            if (!navigator.mediaDevices) return;
+        // ---------- QR scanning (Html5Qrcode + BarcodeDetector fallback) ----------
+        function extractPC(text) {
+            let pc = String(text || '').trim();
+            if (!pc) return '';
             try {
-                html5QrCode = new Html5Qrcode("qr-reader");
-                const config = { fps: 15, qrbox: { width: 190, height: 190 } };
-                
-                html5QrCode.start(
-                    { facingMode: "environment" }, 
-                    config, 
-                    (decodedText) => {
-                        let pc = String(decodedText).replace(/[^0-9]/g, '').padStart(2, '0');
-                        if (['01','02','03','04'].includes(pc)) {
-                            if (localStorage.getItem(`dnhs_session_pc_${pc}`)) {
-                                Swal.fire("Error", "Occupied na ang PC na ito!", "error");
-                                return;
-                            }
-                            html5QrCode.stop().then(() => grantAccess(pc)).catch(() => grantAccess(pc));
-                        }
-                    },
-                    (errorMessage) => {}
-                ).catch(err => {
-                    html5QrCode.start({ facingMode: "user" }, config, (decodedText) => {
-                        let pc = String(decodedText).replace(/[^0-9]/g, '').padStart(2, '0');
-                        if (['01','02','03','04'].includes(pc)) {
-                            html5QrCode.stop().then(() => grantAccess(pc));
-                        }
-                    }, () => {});
+                const url = new URL(pc);
+                pc = url.searchParams.get('pc') || url.pathname.replace(/[^0-9]/g, '');
+            } catch (_) {
+                pc = pc.replace(/[^0-9]/g, '');
+            }
+            return pc.trim();
+        }
+
+        function handleScan(raw) {
+            if (qrAccessGranted) return;
+            const pc = extractPC(raw);
+            if (!pc) return;
+            if (pc === targetPC) {
+                qrAccessGranted = true;
+                setStatus('Access granted', 'var(--accent-2)');
+                stopScanner();
+                grantAccess();
+            } else {
+                setStatus(`Scanned PC ${pc} does not match station ${targetPC}.`, 'var(--danger)');
+            }
+        }
+
+        function stopScanner() {
+            if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+            if (barcodeStream) {
+                barcodeStream.getTracks().forEach(t => t.stop());
+                barcodeStream = null;
+            }
+            if (html5Qr) {
+                html5Qr.stop().catch(() => {}).then(() => html5Qr.clear().catch(() => {})).catch(() => {});
+            }
+        }
+
+        async function startHtml5Qrcode() {
+            if (typeof Html5Qrcode === 'undefined') { startBarcodeDetector(); return; }
+            try {
+                html5Qr = new Html5Qrcode('qr-reader', false);
+                await html5Qr.start(
+                    { facingMode: 'environment' },
+                    { fps: 12, qrbox: { width: 230, height: 230 }, aspectRatio: 1.0 },
+                    (decoded) => handleScan(decoded),
+                    () => {}
+                );
+                setStatus('Point the QR code at the frame');
+            } catch (_) {
+                startBarcodeDetector();
+            }
+        }
+
+        async function startBarcodeDetector() {
+            if (!('BarcodeDetector' in window) || !navigator.mediaDevices?.getUserMedia) {
+                setStatus('Camera not available on this device.');
+                return;
+            }
+            try {
+                const detector = new BarcodeDetector({ formats: ['qr_code'] });
+                const video = document.createElement('video');
+                video.setAttribute('playsinline', 'true');
+                video.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:22px;display:block;background:#000;';
+                const reader = document.getElementById('qr-reader');
+                reader.innerHTML = '';
+                reader.appendChild(video);
+                barcodeStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
                 });
-            } catch(e) {}
+                video.srcObject = barcodeStream;
+                await video.play();
+                setStatus('Point the QR code at the frame');
+                const loop = async () => {
+                    if (qrAccessGranted) return;
+                    try {
+                        const codes = await detector.detect(video);
+                        if (codes && codes.length) { handleScan(codes[0].rawValue); return; }
+                    } catch (_) {}
+                    if (!qrAccessGranted) rafId = requestAnimationFrame(loop);
+                };
+                loop();
+            } catch (err) {
+                console.error(err);
+                setStatus('Camera access denied.');
+            }
+        }
+
+        function initScanner() {
+            if (!navigator.mediaDevices?.getUserMedia) {
+                setStatus('Camera not available on this device.');
+                return;
+            }
+            startHtml5Qrcode();
+        }
+
+        // ---------- Flow ----------
+        function grantAccess() {
+            const gate = document.getElementById('gateCard');
+            const main = document.getElementById('mainCard');
+            const auth = document.getElementById('authView');
+            hideView(gate, () => {
+                showView(main);
+                showView(auth);
+            });
+            document.getElementById('pageTitle').textContent = 'Student Terminal';
+            document.getElementById('pageSubtitle').textContent = 'Enter your credentials to begin a session';
+            setTimeout(() => document.getElementById('lrn').focus(), 600);
         }
 
         async function processAuth() {
             const lrn = document.getElementById('lrn').value.trim();
-            if(!lrn) return Swal.fire("Oops!", "Enter LRN.", "warning");
-            if(!targetPC) return Swal.fire("Error", "Station PC not identified.", "error");
-
-            Swal.fire({ title: 'Checking LRN...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-
-            for(let i=1; i<=4; i++) {
-                const pKey = String(i).padStart(2, '0');
-                if (pKey !== targetPC) {
-                    const existingData = localStorage.getItem(`dnhs_session_pc_${pKey}`);
-                    if (existingData) {
-                        try {
-                            const parsed = JSON.parse(existingData);
-                            if (parsed && parsed.student_id === lrn) {
-                                Swal.close();
-                                return Swal.fire("Bawal", `Ang LRN na ito ay may active session pa sa PC-${pKey}!`, "error");
-                            }
-                        } catch(e) {}
-                    }
-                }
+            if (lrn.length < 12) {
+                Swal.fire({ icon: 'warning', title: 'Oops!', text: 'Please enter a valid 12-digit LRN.', confirmButtonColor: '#0a84ff' });
+                return;
             }
+            showLoader('Authenticating…');
+            try {
+                const { data: student } = await client
+                    .from('student_roster')
+                    .select('student_name')
+                    .eq('lrn', lrn)
+                    .maybeSingle();
 
-            if (client && navigator.onLine) {
-                try {
-                    const { data, error } = await client.from('active_sessions')
-                        .select('pc_number, student_id')
-                        .eq('student_id', lrn)
-                        .neq('pc_number', targetPC);
-                    
-                    if (!error && data && data.length > 0) {
-                        Swal.close();
-                        return Swal.fire("Bawal", `Ang LRN na ito ay naka-login na sa PC-${data[0].pc_number}!`, "error");
-                    }
-                } catch(e) {}
-            }
-
-            Swal.update({ title: 'Processing...' });
-
-            let studentName = offlineStudents[lrn];
-            const studentSection = "12 CSS";
-
-            if (!studentName && client && navigator.onLine) {
-                try {
-                    let { data } = await client.from('student_roster').select('student_name').eq('lrn', lrn).single();
-                    if (data) studentName = data.student_name;
-                } catch(e) {}
-            }
-
-            if (!studentName) studentName = "REGISTERED STUDENT";
-
-            const now = new Date();
-            const sessionData = { 
-                pc_number: targetPC, 
-                student_id: lrn, 
-                student_name: studentName, 
-                section: studentSection,
-                time_in: now.toISOString() 
-            };
-
-            localStorage.setItem(`dnhs_session_pc_${targetPC}`, JSON.stringify(sessionData));
-
-            if (client && navigator.onLine) {
-                try {
-                    await client.from('active_sessions').update({ 
-                        student_id: lrn, 
-                        student_name: `${studentName} (${studentSection})`, 
-                        time_in: now.toISOString() 
+                if (student) {
+                    const now = new Date();
+                    await client.from('active_sessions').update({
+                        student_id: lrn,
+                        student_name: student.student_name,
+                        time_in: now.toISOString()
                     }).eq('pc_number', targetPC);
-                } catch(e) {}
+
+                    sessionStartTime = now;
+                    hideLoader();
+                    document.getElementById('dashName').textContent = student.student_name;
+                    document.getElementById('dashTime').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    document.getElementById('pageTitle').textContent = 'Session Active';
+                    document.getElementById('pageSubtitle').textContent = 'You are signed in to this workstation';
+                    switchView(document.getElementById('authView'), document.getElementById('dashView'));
+                } else {
+                    hideLoader();
+                    Swal.fire({ icon: 'error', title: 'Not Found', text: 'This LRN is not registered.', confirmButtonColor: '#0a84ff' });
+                }
+            } catch (e) {
+                hideLoader();
+                Swal.fire({ icon: 'error', title: 'Connection Error', text: 'Could not reach the server. Check your connection.', confirmButtonColor: '#0a84ff' });
             }
-
-            Swal.close();
-            restoreDashboard(sessionData);
-            Swal.fire("Success", "Session Started!", "success");
-        }
-
-        function restoreDashboard(data) {
-            document.getElementById('gateForm').classList.add('hidden');
-            document.getElementById('dashboard').classList.remove('hidden');
-            document.getElementById('dashName').innerText = `${data.student_name} (${data.section || '12 CSS'})`;
-            
-            const timeInDate = new Date(data.time_in);
-            document.getElementById('dashTimeIn').innerText = `Time In: ${timeInDate.toLocaleTimeString()}`;
-            
-            document.getElementById('pageTitle').innerText = 'Session Active';
-            
-            if (durationInterval) clearInterval(durationInterval);
-            durationInterval = setInterval(() => {
-                const diff = Math.floor((new Date() - timeInDate) / 1000);
-                const hrs = Math.floor(diff / 3600);
-                const mins = Math.floor((diff % 3600) / 60);
-                const secs = diff % 60;
-                document.getElementById('dashDuration').innerText = `Duration: ${hrs > 0 ? hrs + 'h ' : ''}${mins}m ${secs}s`;
-            }, 1000);
         }
 
         async function signOut() {
-            if (targetPC) {
-                localStorage.removeItem(`dnhs_session_pc_${targetPC}`);
-                if (client && navigator.onLine) {
-                    try {
-                        await client.from('active_sessions').update({ 
-                            student_id: null, 
-                            student_name: null, 
-                            time_in: null, 
-                            time_out: new Date().toISOString() 
-                        }).eq('pc_number', targetPC);
-                    } catch(e) {}
-                }
-            }
+            const r = await Swal.fire({
+                icon: 'question', title: 'End Session?',
+                text: 'Your session will be closed on this station.',
+                showCancelButton: true, confirmButtonText: 'End Session',
+                confirmButtonColor: '#ff453a', cancelButtonColor: 'rgba(255,255,255,0.15)'
+            });
+            if (!r.isConfirmed) return;
+            isLocalSignOut = true;
+            await client.from('active_sessions').update({
+                student_id: null, student_name: null, time_in: null, time_out: new Date().toISOString()
+            }).eq('pc_number', targetPC).catch(() => {});
             window.location.reload();
         }
+
+        // ---------- Duration timer ----------
+        setInterval(() => {
+            if (sessionStartTime) {
+                const diff = Date.now() - new Date(sessionStartTime).getTime();
+                const h = String(Math.floor(diff / 3600000)).padStart(2, '0');
+                const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+                const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+                document.getElementById('dashDuration').textContent = `${h}:${m}:${s}`;
+            }
+        }, 1000);
+
+        // ---------- Admin forced sign-out ----------
+        client.channel('active_sessions')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'active_sessions' }, (payload) => {
+                const record = payload.new || payload.old;
+                if (!isLocalSignOut && record && String(record.pc_number) === String(targetPC) && !record.student_id) {
+                    Swal.fire({ icon: 'info', title: 'Session Ended', text: 'Your session was ended by the administrator.', confirmButtonColor: '#0a84ff' })
+                        .then(() => window.location.reload());
+                }
+            })
+            .subscribe();
+
+        // ---------- Boot ----------
+        document.getElementById('signInBtn').addEventListener('click', processAuth);
+        document.getElementById('signOutBtn').addEventListener('click', signOut);
+        document.getElementById('lrn').addEventListener('keydown', (e) => { if (e.key === 'Enter') processAuth(); });
+
+        window.addEventListener('load', () => {
+            initScanner();
+            setTimeout(() => {
+                document.getElementById('splash').classList.add('hide');
+                showView(document.getElementById('gateCard'));
+            }, 1500);
+        });
+
+        window.addEventListener('pagehide', stopScanner);
     </script>
 </body>
 </html>
