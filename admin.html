@@ -480,7 +480,6 @@
                 </button>
                 <div style="margin-left:auto; display:flex; gap:10px;">
                     <button class="btn-nav" onclick="resetPassword()">Reset Password</button>
-                    <button class="btn-nav danger" onclick="window.location.reload()">Logout</button>
                 </div>
             </div>
 
@@ -495,7 +494,10 @@
             <div id="css12Section" style="display:none; margin-top: 32px;">
                 <div class="section-header">
                     <h2 class="section-title">12 CSS Section Monitor</h2>
-                    <span class="section-badge" id="css12Count">0 Active</span>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span class="section-badge" id="css12Count">0 Active</span>
+                        <button class="btn-nav danger" onclick="window.location.reload()">Logout</button>
+                    </div>
                 </div>
                 <div class="grid" id="css12Grid"></div>
                 <div id="css12Empty" style="display:none; text-align:center; padding: 48px 20px; color: rgba(255,255,255,0.4);">
