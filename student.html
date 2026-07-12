@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DNHS Terminal</title>
+    <title>DNHS CSS QRBASED</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
@@ -42,20 +42,20 @@
     <div class="terminal-container">
         <div style="text-align: center; margin-bottom: 32px;">
             <div class="pc-badge hidden" id="pcBadgeContainer"><span class="dot"></span><span id="pcBadge">PC STATION</span></div>
-            <h1 id="pageTitle" style="font-size: 32px; font-weight: 700; margin-bottom: 8px;">Student Terminal</h1>
-            <p id="pageSubtitle" style="font-size: 14px; color: rgba(255, 255, 255, 0.5);">Scan station QR code to begin</p>
+            <h1 id="pageTitle" style="font-size: 32px; font-weight: 700; margin-bottom: 8px;">STUDENT WORKPLACE</h1>
+            <p id="pageSubtitle" style="font-size: 14px; color: rgba(255, 255, 255, 0.5);">SCAN STATION QR CODE</p>
         </div>
 
         <div class="glass-card" id="qrGateCard">
-            <h2>Access Blocked</h2>
-            <p style="font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 4px; margin-bottom: 16px;">Scan station QR or use offline mode.</p>
+            <h2>ACCESS BLOCKED </h2>
+            <p style="font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 4px; margin-bottom: 16px;">SCAN STATION QR CODE OR USE OFFLINE MODE</p>
             <div id="qr-reader" style="border-radius: 16px; overflow: hidden; min-height: 180px;"></div>
-            <button class="btn btn-offline-bypass" onclick="showPCSelector()" style="margin-top: 16px;">Skip QR (Offline Mode)</button>
+            <button class="btn btn-offline-bypass" onclick="showPCSelector()" style="margin-top: 16px;">OFFLINE MODE</button>
         </div>
 
         <div class="glass-card hidden" id="pcSelectorCard">
             <h2>Select PC Station</h2>
-            <p style="font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 4px; margin-bottom: 16px;">Piliin ang bakanteng PC:</p>
+            <p style="font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 4px; margin-bottom: 16px;">cHOOSE VACANT PC</p>
             <div class="pc-grid-select" id="pcGridOptions"></div>
             <button class="btn btn-offline-bypass" onclick="backToQRGate()">Back to QR Scanner</button>
         </div>
@@ -87,7 +87,7 @@
         let html5QrCode = null;
 
         const offlineStudents = {
-"111657140011": "LANCE M. LORENO",
+         ​"111657140011": "LANCE M. LORENO",
 "114479140159": "QUENIE D. REALUBIT",
 "111670140069": "HALIA QUEEN T. BARANQUIL",
 "111669140011": "GABRIEL A. MANDANE",
