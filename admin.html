@@ -443,6 +443,33 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0.4; }
         }
+
+        .session-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+
+        .btn-session {
+            flex: 1;
+            min-width: 140px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-session:hover {
+            background: rgba(239, 68, 68, 0.25);
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body>
@@ -480,7 +507,6 @@
                 </button>
                 <div style="margin-left:auto; display:flex; gap:10px;">
                     <button class="btn-nav" onclick="resetPassword()">Reset Password</button>
-                    <button class="btn-nav danger" onclick="window.location.reload()">Logout</button>
                 </div>
             </div>
 
@@ -495,7 +521,10 @@
             <div id="css12Section" style="display:none; margin-top: 32px;">
                 <div class="section-header">
                     <h2 class="section-title">12 CSS Section Monitor</h2>
-                    <span class="section-badge" id="css12Count">0 Active</span>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span class="section-badge" id="css12Count">0 Active</span>
+                        <button class="btn-nav danger" onclick="window.location.reload()">Logout</button>
+                    </div>
                 </div>
                 <div class="grid" id="css12Grid"></div>
                 <div id="css12Empty" style="display:none; text-align:center; padding: 48px 20px; color: rgba(255,255,255,0.4);">
@@ -511,7 +540,7 @@
 
         async function verifyLogin() {
             const pass = document.getElementById('adminPass').value;
-            const { data, error } = await client.from('admin_config').select('password').eq('id', 1).single();
+            const { data } = await client.from('admin_config').select('password').eq('id', 1).single();
             if (data && pass === data.password) {
                 document.getElementById('loginView').classList.remove('active');
                 document.getElementById('dashView').classList.add('active');
@@ -567,14 +596,17 @@
             }, 1000);
         }
 
-        function createCard(s, isCss12Context) {
+        function createCard(s) {
             const isActive = !!s.student_id;
             const timeInAttr = s.time_in || '';
             let timeHtml = '';
             if (isActive) {
                 timeHtml = `
                     <p class="time-info">Time In: ${formatTime(s.time_in)}</p>
-                    <p class="duration" data-time-in="${escapeHtml(String(timeInAttr))}">Duration: 00h 00m 00s</p>`;
+                    <p class="duration" data-time-in="${escapeHtml(String(timeInAttr))}">Duration: 00h 00m 00s</p>
+                    <div class="session-actions">
+                        <button class="btn-session" onclick="endSession('${s.pc_number}', '${escapeHtml(String(s.student_name || ''))}')">End Session</button>
+                    </div>`;
             } else if (s.time_out) {
                 timeHtml = `<p class="time-info">Time Out: ${formatTime(s.time_out)}</p>`;
             }
@@ -588,6 +620,27 @@
                 <p class="student-name">${isActive ? escapeHtml(String(s.student_name)) : 'Vacant'}</p>
                 ${timeHtml}`;
             return card;
+        }
+
+        async function endSession(pc, name) {
+            const result = await Swal.fire({
+                title: 'End Session?',
+                text: `Terminate ${name}'s session on PC-${pc}?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'End Session',
+                confirmButtonColor: '#ef4444'
+            });
+            if (!result.isConfirmed) return;
+
+            await client.from('active_sessions').update({
+                student_id: null,
+                student_name: null,
+                time_in: null,
+                time_out: new Date().toISOString()
+            }).eq('pc_number', pc);
+
+            Swal.fire('Ended', 'The session has been terminated.', 'success');
         }
 
         async function fetchStatus() {
@@ -614,10 +667,10 @@
                         const isCss12 = isCss12Student(s);
                         if (isActive && isCss12) css12ActiveCount++;
 
-                        allGrid.appendChild(createCard(s, false));
+                        allGrid.appendChild(createCard(s));
 
                         if (isCss12) {
-                            css12Grid.appendChild(createCard(s, true));
+                            css12Grid.appendChild(createCard(s));
                         }
                     });
                 }
@@ -669,16 +722,10 @@
                         </button>
                     </div>
                 `,
-                preConfirm: () => {
-                    return document.getElementById('swalNewPass').value;
-                },
-                customClass: {
-                    popup: 'swal2-popup-custom'
-                }
+                preConfirm: () => document.getElementById('swalNewPass').value
             });
-            const pass = result.value;
-            if (pass) {
-                await client.from('admin_config').update({ password: pass }).eq('id', 1);
+            if (result.value) {
+                await client.from('admin_config').update({ password: result.value }).eq('id', 1);
                 Swal.fire('Updated', 'Password changed!', 'success');
             }
         }
