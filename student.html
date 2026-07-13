@@ -418,7 +418,7 @@
         );
 
         const params = new URLSearchParams(window.location.search);
-        const targetPC = (params.get('pc') || "02").padStart(2, '0');
+        let targetPC = (params.get('pc') || "01").padStart(2, '0');
         let sessionStartTime = null;
         let qrAccessGranted = false;
         let html5Qr = null;
@@ -474,15 +474,15 @@
             if (qrAccessGranted) return;
             const pc = extractPC(raw);
             if (!pc) return;
-            showPCBadge(pc);
-            if (pc === targetPC) {
-                qrAccessGranted = true;
-                setStatus('Access granted', 'var(--accent-2)');
-                stopScanner();
-                grantAccess();
-            } else {
-                setStatus(`Scanned PC ${pc} does not match station ${targetPC}.`, 'var(--danger)');
-            }
+            
+            // I-update agad ang targetPC base sa kung anong QR code ang na-scan
+            targetPC = pc.padStart(2, '0');
+            showPCBadge(targetPC);
+            
+            qrAccessGranted = true;
+            setStatus('Access granted', 'var(--accent-2)');
+            stopScanner();
+            grantAccess();
         }
 
         function stopScanner() {
