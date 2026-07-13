@@ -15,7 +15,6 @@
         :root {
             --bg: #050507;
             --glass: rgba(255, 255, 255, 0.055);
-            --glass-strong: rgba(255, 255, 255, 0.08);
             --border: rgba(255, 255, 255, 0.10);
             --border-soft: rgba(255, 255, 255, 0.06);
             --text: #f5f5f7;
@@ -130,6 +129,36 @@
         .scan-status {
             margin-top: 14px; font-size: 13px; font-weight: 500;
             color: var(--text-dim); min-height: 18px;
+        }
+
+        .input-group { margin-bottom: 18px; text-align: left; }
+        .input-group label {
+            display: block; font-size: 12.5px; font-weight: 500;
+            color: var(--text-dim); margin-bottom: 9px;
+        }
+        .input-group input {
+            width: 100%; padding: 16px 18px;
+            background: rgba(0, 0, 0, 0.28);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            color: var(--text); font-size: 16px; font-family: inherit;
+            letter-spacing: 0.04em;
+            transition: border-color 0.3s var(--ease), box-shadow 0.3s var(--ease), background 0.3s var(--ease);
+            outline: none;
+        }
+        .input-group input:focus {
+            border-color: rgba(10, 132, 255, 0.55);
+            box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.14);
+            background: rgba(0, 0, 0, 0.4);
+        }
+        .input-group input::placeholder { color: var(--text-faint); letter-spacing: 0; }
+
+        .btn {
+            width: 100%; padding: 16px;
+            background: linear-gradient(135deg, #0a84ff, #06b6d4);
+            border: none; border-radius: 15px;
+            font-weight: 600; font-size: 15.5px; font-family: inherit;
+            color: #fff; cursor: pointer;
         }
 
         .loader {
@@ -276,6 +305,10 @@
             document.getElementById('mainCard').classList.remove('hidden');
             document.getElementById('mainCard').classList.add('show');
             document.getElementById('authView').classList.add('show');
+
+            setTimeout(() => {
+                document.getElementById('lrn').focus();
+            }, 300);
         }
 
         window.addEventListener('load', () => {
