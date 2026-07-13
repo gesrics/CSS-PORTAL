@@ -46,7 +46,6 @@
             text-rendering: optimizeLegibility;
         }
 
-        /* ---- Ambient background ---- */
         .background {
             position: fixed;
             inset: 0;
@@ -70,7 +69,6 @@
             mix-blend-mode: overlay;
         }
 
-        /* ---- Splash ---- */
         .splash {
             position: fixed;
             inset: 0;
@@ -112,7 +110,6 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
-        /* ---- Terminal shell ---- */
         .terminal {
             position: relative;
             z-index: 1;
@@ -135,6 +132,15 @@
             margin-bottom: 20px;
             backdrop-filter: blur(20px) saturate(180%);
             -webkit-backdrop-filter: blur(20px) saturate(180%);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(8px);
+            transition: opacity 0.3s var(--ease), visibility 0.3s var(--ease), transform 0.3s var(--ease);
+        }
+        .pc-badge.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
         }
         .pc-badge .dot {
             width: 7px; height: 7px; border-radius: 50%;
@@ -151,7 +157,6 @@
             margin-top: 7px; font-size: 14px; color: var(--text-dim); font-weight: 400;
         }
 
-        /* ---- Animated view system ---- */
         .anim {
             opacity: 0;
             transform: translateY(18px) scale(0.985);
@@ -161,7 +166,6 @@
         .anim.show { opacity: 1; transform: none; pointer-events: auto; }
         .hidden { display: none !important; }
 
-        /* ---- Glass card ---- */
         .glass-card {
             background: var(--glass);
             backdrop-filter: blur(38px) saturate(180%);
@@ -172,7 +176,6 @@
             box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
         }
 
-        /* ---- QR Gate ---- */
         .gate-icon {
             width: 54px; height: 54px; margin: 0 auto 18px;
             display: flex; align-items: center; justify-content: center;
@@ -238,7 +241,6 @@
             transition: color 0.3s var(--ease);
         }
 
-        /* ---- Auth / Dashboard ---- */
         .input-group { margin-bottom: 18px; text-align: left; }
         .input-group label {
             display: block; font-size: 12.5px; font-weight: 500;
@@ -305,7 +307,6 @@
             font-family: 'SF Mono', ui-monospace, 'Inter', monospace; letter-spacing: 0.02em;
         }
 
-        /* ---- Loading overlay ---- */
         .loader {
             position: fixed; inset: 0; z-index: 55;
             display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
@@ -337,7 +338,6 @@
 <body>
     <div class="background"></div>
 
-    <!-- Splash -->
     <div class="splash" id="splash">
         <div class="splash-logo">
             <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
@@ -349,15 +349,13 @@
         <div class="splash-spinner"></div>
     </div>
 
-    <!-- Terminal -->
     <div class="terminal">
         <div class="terminal-header">
-            <div class="pc-badge"><span class="dot"></span><span id="pcBadge">PC STATION</span></div>
+            <div class="pc-badge" id="pcBadge"><span class="dot"></span><span id="pcBadgeText"></span></div>
             <h1 id="pageTitle">Student Terminal</h1>
             <p id="pageSubtitle">Scan the station QR code to begin</p>
         </div>
 
-        <!-- QR Gate -->
         <section class="glass-card gate-card anim" id="gateCard">
             <div class="gate-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -379,7 +377,6 @@
             <p class="scan-status" id="scanStatus">Initializing camera…</p>
         </section>
 
-        <!-- Main -->
         <section class="glass-card anim hidden" id="mainCard">
             <div class="anim" id="authView">
                 <div class="input-group">
@@ -409,7 +406,6 @@
         </section>
     </div>
 
-    <!-- Loading overlay -->
     <div class="loader" id="loader">
         <div class="loader-ring"></div>
         <div class="loader-label" id="loaderLabel">Authenticating…</div>
@@ -429,7 +425,14 @@
         let barcodeStream = null;
         let rafId = null;
 
-        document.getElementById('pcBadge').textContent = `PC ${targetPC}`;
+        const pcBadge = document.getElementById('pcBadge');
+        const pcBadgeText = document.getElementById('pcBadgeText');
+        pcBadgeText.textContent = `PC ${targetPC}`;
+
+        function showPCBadge(pc) {
+            pcBadgeText.textContent = `PC ${pc}`;
+            pcBadge.classList.add('show');
+        }
 
         function showView(el) {
             el.classList.remove('hidden');
@@ -471,6 +474,7 @@
             if (qrAccessGranted) return;
             const pc = extractPC(raw);
             if (!pc) return;
+            showPCBadge(pc);
             if (pc === targetPC) {
                 qrAccessGranted = true;
                 setStatus('Access granted', 'var(--accent-2)');
