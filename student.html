@@ -29,7 +29,6 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
         html, body { height: 100%; }
 
         body {
@@ -427,7 +426,6 @@
 
         const pcBadge = document.getElementById('pcBadge');
         const pcBadgeText = document.getElementById('pcBadgeText');
-        pcBadgeText.textContent = `PC ${targetPC}`;
 
         function showPCBadge(pc) {
             pcBadgeText.textContent = `PC ${pc}`;
@@ -459,21 +457,25 @@
         }
 
         function extractPC(text) {
-            let pc = String(text || '').trim();
-            if (!pc) return '';
+            const raw = String(text || '').trim();
+            if (!raw) return '';
             try {
-                const url = new URL(pc);
-                pc = url.searchParams.get('pc') || url.pathname.replace(/[^0-9]/g, '');
+                const url = new URL(raw);
+                const pc = url.searchParams.get('pc');
+                return (pc || '').trim().padStart(2, '0');
             } catch (_) {
-                pc = pc.replace(/[^0-9]/g, '');
+                const match = raw.match(/(?:\?|&)pc=(\d{1,2})/i) || raw.match(/\bpc\s*[:=]\s*(\d{1,2})\b/i);
+                return match ? match[1].padStart(2, '0') : '';
             }
-            return pc.trim();
         }
 
         function handleScan(raw) {
             if (qrAccessGranted) return;
             const pc = extractPC(raw);
-            if (!pc) return;
+            if (!pc) {
+                setStatus('Invalid QR code. Please scan a station QR.', 'var(--danger)');
+                return;
+            }
             showPCBadge(pc);
             if (pc === targetPC) {
                 qrAccessGranted = true;
