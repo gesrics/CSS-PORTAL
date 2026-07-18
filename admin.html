@@ -209,6 +209,7 @@
 </head>
 <body>
     <div class="background"></div>
+
     <div id="loginView" class="view active">
         <div class="login-wrapper">
             <div class="glass-card">
@@ -290,12 +291,16 @@
         let debounceTimer = null;
 
         async function verifyLogin() {
-            const pass = document.getElementById('adminPass').value;
-            const { data } = await client.from('admin_config').select('password').eq('id', 1).single();
-            if (data && pass === data.password) {
+            const pass = document.getElementById('adminPass').value.trim();
+            const { data, error } = await client.from('admin_config').select('password').eq('id', 1).single();
+            if (error || !data) {
+                Swal.fire('Error', 'Unable to load admin password', 'error');
+                return;
+            }
+            if (pass === data.password) {
                 document.getElementById('loginView').classList.remove('active');
                 document.getElementById('dashView').classList.add('active');
-                fetchStatus();
+                await fetchStatus();
                 startRealtime();
             } else {
                 Swal.fire('Error', 'Invalid Password', 'error');
@@ -304,14 +309,16 @@
 
         function toggleBurgerMenu() {
             burgerOpen = !burgerOpen;
-            document.getElementById('burgerMenu').classList.toggle('show', burgerOpen);
+            const menu = document.getElementById('burgerMenu');
+            if (menu) menu.classList.toggle('show', burgerOpen);
         }
 
         document.addEventListener('click', (e) => {
             const wrap = document.querySelector('.burger-wrap');
-            if (wrap && !wrap.contains(e.target)) {
+            const menu = document.getElementById('burgerMenu');
+            if (wrap && menu && !wrap.contains(e.target)) {
                 burgerOpen = false;
-                document.getElementById('burgerMenu').classList.remove('show');
+                menu.classList.remove('show');
             }
         });
 
@@ -323,7 +330,7 @@
 
         function escapeHtml(text) {
             const div = document.createElement('div');
-            div.textContent = text;
+            div.textContent = text || '';
             return div.innerHTML;
         }
 
@@ -334,14 +341,11 @@
             document.getElementById('css12Section').style.display = tab === 'css12' ? 'block' : 'none';
         }
 
-        function createCard(s, showEndSession) {
+        function createCard(s) {
             const isActive = !!s.student_id;
             let timeHtml = '';
             if (isActive) {
                 timeHtml = `<p class="time-info">Time In: ${formatTime(s.time_in)}</p><p class="duration" data-time-in="${escapeHtml(String(s.time_in || ''))}">Duration: 00h 00m 00s</p>`;
-                if (showEndSession) {
-                    timeHtml += `<div class="session-actions"><button class="btn-session" onclick="endSession('${s.pc_number}', '${escapeHtml(String(s.student_name || ''))}')">End Session</button></div>`;
-                }
             } else if (s.time_out) {
                 timeHtml = `<p class="time-info">Time Out: ${formatTime(s.time_out)}</p>`;
             }
@@ -350,7 +354,7 @@
             card.className = 'card' + (isActive ? ' active-student' : ' vacant');
             card.setAttribute('data-pc', s.pc_number);
             card.setAttribute('data-active', String(isActive));
-            card.innerHTML = `<h3>PC-${s.pc_number}</h3><p class="student-name">${isActive ? escapeHtml(String(s.student_name)) : 'Vacant'}</p>${timeHtml}`;
+            card.innerHTML = `<h3>PC-${s.pc_number}</h3><p class="student-name">${isActive ? escapeHtml(String(s.student_name)) : 'Vacant'}</p>${timeHtml}${isActive ? `<div class="session-actions"><button class="btn-session" onclick="endSession('${s.pc_number}', '${escapeHtml(String(s.student_name || ''))}')">End Session</button></div>` : ''}`;
             return card;
         }
 
@@ -364,12 +368,15 @@
                 confirmButtonColor: '#ef4444'
             });
             if (!result.isConfirmed) return;
-            await client.from('active_sessions').update({
+            const { error } = await client.from('active_sessions').update({
                 student_id: null,
                 student_name: null,
                 time_in: null,
                 time_out: new Date().toISOString()
             }).eq('pc_number', pc);
+            if (error) {
+                Swal.fire('Error', 'Failed to end session', 'error');
+            }
         }
 
         function isCss12Student(session) {
@@ -379,11 +386,14 @@
         }
 
         async function fetchStatus() {
-            const { data: sessions } = await client.from('active_sessions').select('*').order('pc_number', { ascending: true });
-            const sorted = sessions || [];
+            const { data, error } = await client.from('active_sessions').select('*').order('pc_number', { ascending: true });
+            if (error) return;
+            const sessions = data || [];
             const allGrid = document.getElementById('monitorGrid');
             const css12Grid = document.getElementById('css12Grid');
             const css12Empty = document.getElementById('css12Empty');
+            if (!allGrid || !css12Grid || !css12Empty) return;
+
             allGrid.innerHTML = '';
             css12Grid.innerHTML = '';
 
@@ -391,17 +401,35 @@
             let css12ActiveCount = 0;
 
             for (let i = 1; i <= TOTAL_PCS; i++) {
-                const session = sorted.find(s => Number(s.pc_number) === i) || { pc_number: i, student_id: null, student_name: null, time_in: null, time_out: null };
+                const session = sessions.find(s => Number(s.pc_number) === i) || { pc_number: i, student_id: null, student_name: null, time_in: null, time_out: null };
                 const isActive = !!session.student_id;
                 if (isActive) activeCount++;
                 if (isActive && isCss12Student(session)) css12ActiveCount++;
-                allGrid.appendChild(createCard(session, true));
-                css12Grid.appendChild(createCard(session, true));
+                allGrid.appendChild(createCard(session));
+                css12Grid.appendChild(createCard(session));
             }
 
             document.getElementById('allCount').textContent = `${activeCount} Active`;
             document.getElementById('css12Count').textContent = `${css12ActiveCount} Active`;
             css12Empty.style.display = css12ActiveCount === 0 ? 'block' : 'none';
+            startDurationTicker();
+        }
+
+        let durationTickerStarted = false;
+        function startDurationTicker() {
+            if (durationTickerStarted) return;
+            durationTickerStarted = true;
+            setInterval(() => {
+                document.querySelectorAll('.card[data-active="true"] .duration').forEach(el => {
+                    const startIso = el.getAttribute('data-time-in');
+                    if (!startIso) return;
+                    const diff = Date.now() - new Date(startIso).getTime();
+                    const h = String(Math.floor(diff / 3600000)).padStart(2, '0');
+                    const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+                    const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+                    el.textContent = `Duration: ${h}h ${m}m ${s}s`;
+                });
+            }, 1000);
         }
 
         function startRealtime() {
@@ -410,7 +438,7 @@
                 .channel('active_sessions_realtime')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'active_sessions' }, () => {
                     clearTimeout(debounceTimer);
-                    debounceTimer = setTimeout(fetchStatus, 50);
+                    debounceTimer = setTimeout(fetchStatus, 100);
                 })
                 .subscribe();
         }
@@ -418,6 +446,7 @@
         async function toggleLoginPassword() {
             const input = document.getElementById('adminPass');
             const btn = document.querySelector('#loginView .password-toggle');
+            if (!input || !btn) return;
             const eyeOpen = btn.querySelector('.eye-open');
             const eyeClosed = btn.querySelector('.eye-closed');
             if (input.type === 'password') {
@@ -453,15 +482,20 @@
                 color: '#fff',
                 backdrop: 'rgba(0, 0, 0, 0.82)'
             });
-            if (result.value) {
-                await client.from('admin_config').update({ password: result.value }).eq('id', 1);
-                Swal.fire({ icon: 'success', title: 'Password Updated', text: 'Admin password has been changed successfully.', background: '#0b0b0f', color: '#fff', confirmButtonColor: '#0a84ff' });
+            if (result.isConfirmed && result.value) {
+                const { error } = await client.from('admin_config').update({ password: result.value }).eq('id', 1);
+                if (error) {
+                    Swal.fire('Error', 'Failed to update password', 'error');
+                } else {
+                    Swal.fire({ icon: 'success', title: 'Password Updated', text: 'Admin password has been changed successfully.', background: '#0b0b0f', color: '#fff', confirmButtonColor: '#0a84ff' });
+                }
             }
         }
 
         function toggleSwalPassword() {
             const input = document.getElementById('swalNewPass');
             const btn = document.querySelector('.swal2-password-wrapper .password-toggle');
+            if (!input || !btn) return;
             const eyeOpen = btn.querySelector('.eye-open');
             const eyeClosed = btn.querySelector('.eye-closed');
             if (input.type === 'password') {
@@ -475,11 +509,13 @@
             }
         }
 
-        client.channel('active_sessions')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'active_sessions' }, fetchStatus)
-            .subscribe();
-
         window.addEventListener('load', fetchStatus);
+        client.channel('active_sessions')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'active_sessions' }, () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(fetchStatus, 100);
+            })
+            .subscribe();
     </script>
 </body>
 </html>
