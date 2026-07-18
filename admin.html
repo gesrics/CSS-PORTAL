@@ -289,6 +289,7 @@
         let burgerOpen = false;
         let realtimeChannel = null;
         let debounceTimer = null;
+        let durationIntervals = {};
 
         async function verifyLogin() {
             const pass = document.getElementById('adminPass').value.trim();
@@ -368,12 +369,14 @@
                 confirmButtonColor: '#ef4444'
             });
             if (!result.isConfirmed) return;
+
             const { error } = await client.from('active_sessions').update({
                 student_id: null,
                 student_name: null,
                 time_in: null,
                 time_out: new Date().toISOString()
             }).eq('pc_number', pc);
+
             if (error) {
                 Swal.fire('Error', 'Failed to end session', 'error');
             }
@@ -385,9 +388,38 @@
             return name.includes('css') || name.includes('12');
         }
 
+        function stopDurationTimers() {
+            Object.values(durationIntervals).forEach(clearInterval);
+            durationIntervals = {};
+        }
+
+        function updateDurationForCard(el) {
+            const startIso = el.getAttribute('data-time-in');
+            if (!startIso) return;
+            const diff = Date.now() - new Date(startIso).getTime();
+            const h = String(Math.floor(diff / 3600000)).padStart(2, '0');
+            const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+            const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+            el.textContent = `Duration: ${h}h ${m}m ${s}s`;
+        }
+
+        function startDurationTicker() {
+            document.querySelectorAll('.card[data-active="true"] .duration').forEach(el => {
+                updateDurationForCard(el);
+            });
+
+            if (window.__adminDurationTicker) return;
+            window.__adminDurationTicker = setInterval(() => {
+                document.querySelectorAll('.card[data-active="true"] .duration').forEach(el => {
+                    updateDurationForCard(el);
+                });
+            }, 1000);
+        }
+
         async function fetchStatus() {
             const { data, error } = await client.from('active_sessions').select('*').order('pc_number', { ascending: true });
             if (error) return;
+
             const sessions = data || [];
             const allGrid = document.getElementById('monitorGrid');
             const css12Grid = document.getElementById('css12Grid');
@@ -412,24 +444,8 @@
             document.getElementById('allCount').textContent = `${activeCount} Active`;
             document.getElementById('css12Count').textContent = `${css12ActiveCount} Active`;
             css12Empty.style.display = css12ActiveCount === 0 ? 'block' : 'none';
-            startDurationTicker();
-        }
 
-        let durationTickerStarted = false;
-        function startDurationTicker() {
-            if (durationTickerStarted) return;
-            durationTickerStarted = true;
-            setInterval(() => {
-                document.querySelectorAll('.card[data-active="true"] .duration').forEach(el => {
-                    const startIso = el.getAttribute('data-time-in');
-                    if (!startIso) return;
-                    const diff = Date.now() - new Date(startIso).getTime();
-                    const h = String(Math.floor(diff / 3600000)).padStart(2, '0');
-                    const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
-                    const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
-                    el.textContent = `Duration: ${h}h ${m}m ${s}s`;
-                });
-            }, 1000);
+            startDurationTicker();
         }
 
         function startRealtime() {
