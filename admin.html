@@ -301,6 +301,8 @@
         const TOTAL_PCS = 10;
         let burgerOpen = false;
         let liveTimer = null;
+        let realtimeChannel = null;
+        let debounceTimer = null;
 
         async function verifyLogin() {
             const pass = document.getElementById('adminPass').value;
@@ -310,6 +312,7 @@
                 document.getElementById('dashView').classList.add('active');
                 fetchStatus();
                 startLiveRefresh();
+                startRealtime();
             } else {
                 Swal.fire('Error', 'Invalid Password', 'error');
             }
@@ -451,6 +454,21 @@
             liveTimer = setInterval(fetchStatus, 3000);
         }
 
+        function startRealtime() {
+            if (realtimeChannel) return;
+            realtimeChannel = client
+                .channel('active_sessions_realtime')
+                .on(
+                    'postgres_changes',
+                    { event: '*', schema: 'public', table: 'active_sessions' },
+                    () => {
+                        clearTimeout(debounceTimer);
+                        debounceTimer = setTimeout(fetchStatus, 100);
+                    }
+                )
+                .subscribe();
+        }
+
         async function toggleLoginPassword() {
             const input = document.getElementById('adminPass');
             const btn = document.querySelector('#loginView .password-toggle');
@@ -515,7 +533,11 @@
             .on('postgres_changes', { event: '*', schema: 'public', table: 'active_sessions' }, fetchStatus)
             .subscribe();
 
-        window.addEventListener('load', fetchStatus);
+        window.addEventListener('load', () => {
+            fetchStatus();
+            startLiveRefresh();
+            startRealtime();
+        });
     </script>
 </body>
 </html>
