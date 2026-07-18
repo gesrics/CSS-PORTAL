@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#000000">
-    <title>DNHS PORTAL</title>
+    <title>DNHS Terminal</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -256,14 +256,45 @@
             letter-spacing: 0.08em;
             text-transform: uppercase;
         }
+        .session-status {
+            display: inline-flex; align-items: center; gap: 9px;
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.22);
+            border-radius: 100px; padding: 7px 16px;
+            font-size: 11.5px; font-weight: 600; color: var(--accent-2);
+            text-transform: uppercase; letter-spacing: 0.08em;
+            margin-bottom: 22px;
+        }
+        .session-status .pulse {
+            width: 8px; height: 8px; border-radius: 50%; background: var(--accent-2);
+            animation: pulse 2s var(--ease) infinite;
+        }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 22px 0; }
+        .info-item {
+            background: rgba(0, 0, 0, 0.22);
+            border: 1px solid var(--border-soft);
+            border-radius: 16px; padding: 15px;
+        }
+        .info-item.full { grid-column: 1 / -1; }
+        .info-item label {
+            display: block; font-size: 10.5px; font-weight: 600;
+            color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 7px;
+        }
+        .info-item .value { font-size: 15px; font-weight: 600; color: var(--text); }
+        .info-item .value.highlight {
+            color: var(--accent-2); font-variant-numeric: tabular-nums;
+            font-family: 'SF Mono', ui-monospace, 'Inter', monospace; letter-spacing: 0.02em;
+        }
         @media (max-width: 420px) {
             .terminal { padding: 18px 14px; }
             .glass-card { padding: 26px 20px; }
+            .info-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     <div class="background"></div>
+
     <div class="splash" id="splash">
         <div class="splash-logo">
             <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
