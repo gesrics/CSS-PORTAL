@@ -300,6 +300,8 @@
         const client = supabase.createClient("https://kofyybvvzzlcxemwlaqu.supabase.co", "sb_publishable_EXyi06rbFxY4OUV1XRyfjw_omMnlxFN");
         const TOTAL_PCS = 10;
         let burgerOpen = false;
+        let liveTimer = null;
+
         async function verifyLogin() {
             const pass = document.getElementById('adminPass').value;
             const { data } = await client.from('admin_config').select('password').eq('id', 1).single();
@@ -307,14 +309,17 @@
                 document.getElementById('loginView').classList.remove('active');
                 document.getElementById('dashView').classList.add('active');
                 fetchStatus();
+                startLiveRefresh();
             } else {
                 Swal.fire('Error', 'Invalid Password', 'error');
             }
         }
+
         function toggleBurgerMenu() {
             burgerOpen = !burgerOpen;
             document.getElementById('burgerMenu').classList.toggle('show', burgerOpen);
         }
+
         document.addEventListener('click', (e) => {
             const wrap = document.querySelector('.burger-wrap');
             if (wrap && !wrap.contains(e.target)) {
@@ -322,31 +327,33 @@
                 document.getElementById('burgerMenu').classList.remove('show');
             }
         });
+
         function formatTime(iso) {
             if (!iso) return '--';
             const d = new Date(iso);
             return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
         }
+
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
-        let previousSessions = null;
+
         let durationIntervalStarted = false;
-        let currentTab = 'all';
+
         function switchTab(tab) {
-            currentTab = tab;
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.getElementById(tab === 'all' ? 'tabAll' : 'tabCss12').classList.add('active');
             document.getElementById('allPcsSection').style.display = tab === 'all' ? 'block' : 'none';
             document.getElementById('css12Section').style.display = tab === 'css12' ? 'block' : 'none';
         }
+
         function startDurationTicker() {
             if (durationIntervalStarted) return;
             durationIntervalStarted = true;
             setInterval(() => {
-                document.querySelectorAll('.card[data-active=\"true\"] .duration').forEach(el => {
+                document.querySelectorAll('.card[data-active="true"] .duration').forEach(el => {
                     const iso = el.getAttribute('data-time-in');
                     if (!iso) return;
                     const diff = new Date() - new Date(iso);
@@ -357,6 +364,7 @@
                 });
             }, 1000);
         }
+
         function createCard(s, showEndSession) {
             const isActive = !!s.student_id;
             const timeInAttr = s.time_in || '';
@@ -384,6 +392,7 @@
                 ${timeHtml}`;
             return card;
         }
+
         async function endSession(pc, name) {
             const result = await Swal.fire({
                 title: 'End Session?',
@@ -400,37 +409,48 @@
                 time_in: null,
                 time_out: new Date().toISOString()
             }).eq('pc_number', pc);
+            await fetchStatus();
             Swal.fire('Ended', 'The session has been terminated.', 'success');
         }
+
         function isCss12Student(session) {
             if (!session.student_name) return false;
             const name = String(session.student_name).toLowerCase();
             return name.includes('css') || name.includes('12');
         }
+
         async function fetchStatus() {
-            const { data: sessions } = await client.from('active_sessions').select('*');
-            const sorted = sessions ? sessions.sort((a,b) => a.pc_number - b.pc_number) : [];
+            const { data: sessions } = await client.from('active_sessions').select('*').order('pc_number', { ascending: true });
+            const sorted = sessions ? sessions : [];
             const allGrid = document.getElementById('monitorGrid');
             const css12Grid = document.getElementById('css12Grid');
             const css12Empty = document.getElementById('css12Empty');
             allGrid.innerHTML = '';
             css12Grid.innerHTML = '';
+
             let activeCount = 0;
             let css12ActiveCount = 0;
+
             for (let i = 1; i <= TOTAL_PCS; i++) {
-                const session = sorted.find(s => String(s.pc_number) === String(i)) || { pc_number: i, student_id: null, student_name: null, time_in: null, time_out: null };
+                const session = sorted.find(s => Number(s.pc_number) === i) || { pc_number: i, student_id: null, student_name: null, time_in: null, time_out: null };
                 const isActive = !!session.student_id;
                 if (isActive) activeCount++;
-                const isCss12 = isCss12Student(session) || i <= TOTAL_PCS;
-                if (isActive && isCss12) css12ActiveCount++;
-                allGrid.appendChild(createCard(session, false));
-                if (i <= TOTAL_PCS) css12Grid.appendChild(createCard(session, true));
+                if (isActive && isCss12Student(session)) css12ActiveCount++;
+                allGrid.appendChild(createCard(session, true));
+                css12Grid.appendChild(createCard(session, true));
             }
+
             document.getElementById('allCount').textContent = `${activeCount} Active`;
             document.getElementById('css12Count').textContent = `${css12ActiveCount} Active`;
             css12Empty.style.display = css12ActiveCount === 0 ? 'block' : 'none';
             startDurationTicker();
         }
+
+        function startLiveRefresh() {
+            if (liveTimer) return;
+            liveTimer = setInterval(fetchStatus, 3000);
+        }
+
         async function toggleLoginPassword() {
             const input = document.getElementById('adminPass');
             const btn = document.querySelector('#loginView .password-toggle');
@@ -446,6 +466,7 @@
                 eyeClosed.classList.add('hidden');
             }
         }
+
         async function resetPassword() {
             const result = await Swal.fire({
                 title: 'Reset Password',
@@ -473,6 +494,7 @@
                 Swal.fire({ icon: 'success', title: 'Password Updated', text: 'Admin password has been changed successfully.', background: '#0b0b0f', color: '#fff', confirmButtonColor: '#0a84ff' });
             }
         }
+
         function toggleSwalPassword() {
             const input = document.getElementById('swalNewPass');
             const btn = document.querySelector('.swal2-password-wrapper .password-toggle');
@@ -488,7 +510,12 @@
                 eyeClosed.classList.add('hidden');
             }
         }
-        client.channel('active_sessions').on('postgres_changes', { event: '*', schema: 'public', table: 'active_sessions' }, fetchStatus).subscribe();
+
+        client.channel('active_sessions')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'active_sessions' }, fetchStatus)
+            .subscribe();
+
+        window.addEventListener('load', fetchStatus);
     </script>
 </body>
 </html>
