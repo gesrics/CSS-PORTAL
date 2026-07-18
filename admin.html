@@ -145,33 +145,27 @@
             white-space: nowrap; font-family: 'Inter', sans-serif; width: 100%;
         }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3); }
-        .btn:active { transform: translateY(0); }
         .input-group { margin-bottom: 20px; text-align: left; }
-        .input-group label { display: block; font-size: 13px; font-weight: 500; color: rgba(255, 255, 255, 0.7); margin-bottom: 8px; letter-spacing: 0.02em; }
+        .input-group label { display: block; font-size: 13px; font-weight: 500; color: rgba(255, 255, 255, 0.7); margin-bottom: 8px; }
         .input-field {
             width: 100%; padding: 16px 50px 16px 18px;
             background: rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 14px; color: #fff; font-size: 15px; font-family: 'Inter', sans-serif;
-            transition: all 0.3s ease; outline: none;
+            outline: none;
         }
-        .input-field:focus { border-color: rgba(59, 130, 246, 0.5); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
-        .input-field::placeholder { color: rgba(255, 255, 255, 0.3); }
         .password-wrapper { position: relative; }
         .password-toggle {
             position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
             background: none; border: none; color: rgba(255, 255, 255, 0.5);
             cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center;
-            border-radius: 8px; transition: all 0.2s ease;
+            border-radius: 8px;
         }
-        .password-toggle:hover { color: rgba(255, 255, 255, 0.9); background: rgba(255, 255, 255, 0.05); }
-        .password-toggle svg { width: 20px; height: 20px; }
         .hidden { display: none !important; }
         .swal2-password-wrapper { position: relative; }
         .swal2-password-wrapper .input-field { padding-right: 50px; }
         .swal2-password-wrapper .password-toggle { right: 10px; top: 60%; transform: translateY(-50%); }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @media (max-width: 768px) { .nav { padding: 16px 0; } .grid { grid-template-columns: 1fr; } .glass-card { padding: 32px; } .burger-menu { width: 200px; } }
         .monitor-header { text-align: center; margin-bottom: 40px; }
         .monitor-header h1 {
             font-size: 36px; font-weight: 700; letter-spacing: -0.02em;
@@ -188,7 +182,6 @@
             color: rgba(255, 255, 255, 0.5); font-size: 14px; font-weight: 500; cursor: pointer;
             transition: all 0.2s ease; font-family: 'Inter', sans-serif; margin-bottom: -1px;
         }
-        .tab:hover { color: rgba(255, 255, 255, 0.8); }
         .tab.active { color: #fff; border-bottom-color: #06b6d4; }
         .section-header {
             display: flex; align-items: center; justify-content: space-between;
@@ -205,26 +198,13 @@
             flex: 1; min-width: 140px; padding: 10px 14px; border-radius: 12px;
             border: 1px solid rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.15);
             color: #fca5a5; font-size: 12px; font-weight: 600; cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-family: 'Inter', sans-serif;
         }
-        .btn-session:hover { background: rgba(239, 68, 68, 0.25); transform: translateY(-2px); }
-        .apple-swal-popup {
-            background: rgba(10, 10, 12, 0.72) !important;
-            backdrop-filter: blur(60px) saturate(200%) !important;
-            -webkit-backdrop-filter: blur(60px) saturate(200%) !important;
-            border: 1px solid rgba(255, 255, 255, 0.08) !important;
-            border-radius: 24px !important;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55) !important;
-        }
-        .apple-swal-title { color: #fff !important; font-weight: 700 !important; letter-spacing: -0.02em !important; }
-        .apple-swal-html { color: rgba(255,255,255,0.72) !important; }
-        .apple-swal-confirm, .apple-swal-cancel { border-radius: 12px !important; font-weight: 600 !important; }
+        .dot { width: 6px; height: 6px; border-radius: 50%; }
         .swal2-container.swal2-backdrop-show {
             background: rgba(0, 0, 0, 0.82) !important;
             backdrop-filter: blur(18px) saturate(140%) !important;
             -webkit-backdrop-filter: blur(18px) saturate(140%) !important;
         }
-        .dot { width: 6px; height: 6px; border-radius: 50%; }
     </style>
 </head>
 <body>
@@ -246,6 +226,7 @@
             </div>
         </div>
     </div>
+
     <div id="dashView" class="view">
         <div class="admin-container">
             <div class="nav">
@@ -265,17 +246,20 @@
                     </div>
                 </div>
             </div>
+
             <div class="monitor-header">
                 <h1>ADMIN LIVE MONITOR</h1>
                 <p>Real-time PC session tracking</p>
             </div>
+
             <div class="tabs">
                 <button class="tab active" onclick="switchTab('all')" id="tabAll">All PCs</button>
                 <button class="tab" onclick="switchTab('css12')" id="tabCss12">
-                    <span class="dot" style="background:#06b6d4;display:inline-block;margin-right:6px;animation:pulse-dot 2s ease-in-out infinite;"></span>
+                    <span class="dot" style="background:#06b6d4;display:inline-block;margin-right:6px;"></span>
                     12 CSS
                 </button>
             </div>
+
             <div id="allPcsSection">
                 <div class="section-header">
                     <h2 class="section-title">ALL PC SESSIONS</h2>
@@ -283,6 +267,7 @@
                 </div>
                 <div class="grid" id="monitorGrid"></div>
             </div>
+
             <div id="css12Section" style="display:none; margin-top: 32px;">
                 <div class="section-header">
                     <h2 class="section-title">12 CSS SECTION MONITOR</h2>
@@ -296,6 +281,7 @@
             </div>
         </div>
     </div>
+
     <script>
         const client = supabase.createClient("https://kofyybvvzzlcxemwlaqu.supabase.co", "sb_publishable_EXyi06rbFxY4OUV1XRyfjw_omMnlxFN");
         const TOTAL_PCS = 10;
@@ -341,8 +327,6 @@
             return div.innerHTML;
         }
 
-        let durationIntervalStarted = false;
-
         function switchTab(tab) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.getElementById(tab === 'all' ? 'tabAll' : 'tabCss12').classList.add('active');
@@ -350,47 +334,23 @@
             document.getElementById('css12Section').style.display = tab === 'css12' ? 'block' : 'none';
         }
 
-        function startDurationTicker() {
-            if (durationIntervalStarted) return;
-            durationIntervalStarted = true;
-            setInterval(() => {
-                document.querySelectorAll('.card[data-active="true"] .duration').forEach(el => {
-                    const iso = el.getAttribute('data-time-in');
-                    if (!iso) return;
-                    const diff = new Date() - new Date(iso);
-                    const h = String(Math.floor(diff / 3600000)).padStart(2, '0');
-                    const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
-                    const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
-                    el.innerText = `Duration: ${h}h ${m}m ${s}s`;
-                });
-            }, 1000);
-        }
-
         function createCard(s, showEndSession) {
             const isActive = !!s.student_id;
-            const timeInAttr = s.time_in || '';
             let timeHtml = '';
             if (isActive) {
-                timeHtml = `
-                    <p class="time-info">Time In: ${formatTime(s.time_in)}</p>
-                    <p class="duration" data-time-in="${escapeHtml(String(timeInAttr))}">Duration: 00h 00m 00s</p>`;
+                timeHtml = `<p class="time-info">Time In: ${formatTime(s.time_in)}</p><p class="duration" data-time-in="${escapeHtml(String(s.time_in || ''))}">Duration: 00h 00m 00s</p>`;
                 if (showEndSession) {
-                    timeHtml += `
-                    <div class="session-actions">
-                        <button class="btn-session" onclick="endSession('${s.pc_number}', '${escapeHtml(String(s.student_name || ''))}')">End Session</button>
-                    </div>`;
+                    timeHtml += `<div class="session-actions"><button class="btn-session" onclick="endSession('${s.pc_number}', '${escapeHtml(String(s.student_name || ''))}')">End Session</button></div>`;
                 }
             } else if (s.time_out) {
                 timeHtml = `<p class="time-info">Time Out: ${formatTime(s.time_out)}</p>`;
             }
+
             const card = document.createElement('div');
             card.className = 'card' + (isActive ? ' active-student' : ' vacant');
             card.setAttribute('data-pc', s.pc_number);
             card.setAttribute('data-active', String(isActive));
-            card.innerHTML = `
-                <h3>PC-${s.pc_number}</h3>
-                <p class="student-name">${isActive ? escapeHtml(String(s.student_name)) : 'Vacant'}</p>
-                ${timeHtml}`;
+            card.innerHTML = `<h3>PC-${s.pc_number}</h3><p class="student-name">${isActive ? escapeHtml(String(s.student_name)) : 'Vacant'}</p>${timeHtml}`;
             return card;
         }
 
@@ -410,8 +370,6 @@
                 time_in: null,
                 time_out: new Date().toISOString()
             }).eq('pc_number', pc);
-            await fetchStatus();
-            Swal.fire('Ended', 'The session has been terminated.', 'success');
         }
 
         function isCss12Student(session) {
@@ -422,7 +380,7 @@
 
         async function fetchStatus() {
             const { data: sessions } = await client.from('active_sessions').select('*').order('pc_number', { ascending: true });
-            const sorted = sessions ? sessions : [];
+            const sorted = sessions || [];
             const allGrid = document.getElementById('monitorGrid');
             const css12Grid = document.getElementById('css12Grid');
             const css12Empty = document.getElementById('css12Empty');
@@ -444,7 +402,6 @@
             document.getElementById('allCount').textContent = `${activeCount} Active`;
             document.getElementById('css12Count').textContent = `${css12ActiveCount} Active`;
             css12Empty.style.display = css12ActiveCount === 0 ? 'block' : 'none';
-            startDurationTicker();
         }
 
         function startRealtime() {
