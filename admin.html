@@ -369,6 +369,25 @@
         }
     });
 
+    function toggleLoginPassword() {
+        const input = document.getElementById('adminPass');
+        const btn = document.querySelector('#loginView .password-toggle');
+        if (!input || !btn) return;
+
+        const eyeOpen = btn.querySelector('.eye-open');
+        const eyeClosed = btn.querySelector('.eye-closed');
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            eyeOpen.classList.add('hidden');
+            eyeClosed.classList.remove('hidden');
+        } else {
+            input.type = 'password';
+            eyeOpen.classList.remove('hidden');
+            eyeClosed.classList.add('hidden');
+        }
+    }
+
     function formatTime(iso) {
         if (!iso) return '--';
         const d = new Date(iso);
@@ -398,24 +417,7 @@
         return name.includes('css') || name.includes('12');
     }
 
-    function updateDurationForCard(el) {
-        const startIso = el.getAttribute('data-time-in');
-        if (!startIso) return;
-        const diff = Date.now() - new Date(startIso).getTime();
-        const h = String(Math.floor(diff / 3600000)).padStart(2, '0');
-        const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
-        const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
-        el.textContent = `Duration: ${h}h ${m}m ${s}s`;
-    }
-
-    function startDurationTicker() {
-        if (window.__adminDurationTicker) return;
-        window.__adminDurationTicker = setInterval(() => {
-            document.querySelectorAll('.card[data-active="true"] .duration').forEach(el => updateDurationForCard(el));
-        }, 1000);
-    }
-
-    function createCard(s) {
+    function createCard(s, showEndButton) {
         const active = isActiveSession(s);
         const displayName = s.student_name ? String(s.student_name) : 'Vacant';
         const lrn = s.student_id ? String(s.student_id) : '--';
@@ -423,7 +425,7 @@
         const timeIn = formatTime(s.time_in);
         const timeOut = formatTime(s.time_out);
 
-        const showTimeIn = active; // only show Time In when not ended
+        const showTimeIn = active; // hide time in after end
         const showDuration = active;
 
         const timeBlocks = `
@@ -443,7 +445,7 @@
             ? `<div class="duration" data-time-in="${escapeHtml(String(s.time_in || ''))}">Duration: 00h 00m 00s</div>`
             : `<div class="duration" style="color: rgba(255,255,255,0.35);">Duration: --</div>`;
 
-        const endBtn = active
+        const endBtn = (active && showEndButton)
             ? `<div style="margin-top:14px;">
                    <button class="btn-session" onclick="endSession('${s.pc_number}')">End Session</button>
                </div>`
@@ -462,8 +464,24 @@
             ${durationHtml}
             ${endBtn}
         `;
-
         return card;
+    }
+
+    function updateDurationForCard(el) {
+        const startIso = el.getAttribute('data-time-in');
+        if (!startIso) return;
+        const diff = Date.now() - new Date(startIso).getTime();
+        const h = String(Math.floor(diff / 3600000)).padStart(2, '0');
+        const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+        const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+        el.textContent = `Duration: ${h}h ${m}m ${s}s`;
+    }
+
+    function startDurationTicker() {
+        if (window.__adminDurationTicker) return;
+        window.__adminDurationTicker = setInterval(() => {
+            document.querySelectorAll('.card[data-active="true"] .duration').forEach(el => updateDurationForCard(el));
+        }, 1000);
     }
 
     async function endSession(pc) {
@@ -478,12 +496,7 @@
         if (!result.isConfirmed) return;
 
         const nowIso = new Date().toISOString();
-
-        // Keep student_id/student_name for history, but Time In will be hidden in UI after end
-        const { error } = await client.from('active_sessions').update({
-            time_out: nowIso
-        }).eq('pc_number', pc);
-
+        const { error } = await client.from('active_sessions').update({ time_out: nowIso }).eq('pc_number', pc);
         if (error) Swal.fire('Error', 'Failed to end session', 'error');
 
         fetchStatus();
@@ -519,8 +532,10 @@
             if (active) activeCount++;
             if (active && isCss12Student(session)) css12ActiveCount++;
 
-            allGrid.appendChild(createCard(session));
-            css12Grid.appendChild(createCard(session));
+            // All PCs: NO End Session button
+            allGrid.appendChild(createCard(session, false));
+            // 12 CSS: End Session button ONLY here
+            css12Grid.appendChild(createCard(session, true));
         }
 
         document.getElementById('allCount').textContent = `${activeCount} Active`;
@@ -573,36 +588,14 @@
 
         if (result.isConfirmed && result.value) {
             const { error } = await client.from('admin_config').update({ password: result.value }).eq('id', 1);
-            if (error) {
-                Swal.fire('Error', 'Failed to update password', 'error');
-            } else {
-                Swal.fire({ icon: 'success', title: 'Password Updated', text: 'Admin password has been changed successfully.', background: '#0b0b0f', color: '#fff', confirmButtonColor: '#0a84ff' });
-            }
+            if (error) Swal.fire('Error', 'Failed to update password', 'error');
+            else Swal.fire({ icon: 'success', title: 'Password Updated', text: 'Admin password has been changed successfully.', background: '#0b0b0f', color: '#fff', confirmButtonColor: '#0a84ff' });
         }
     }
 
     function toggleSwalPassword() {
         const input = document.getElementById('swalNewPass');
         const btn = document.querySelector('.swal2-password-wrapper .password-toggle');
-        if (!input || !btn) return;
-
-        const eyeOpen = btn.querySelector('.eye-open');
-        const eyeClosed = btn.querySelector('.eye-closed');
-
-        if (input.type === 'password') {
-            input.type = 'text';
-            eyeOpen.classList.add('hidden');
-            eyeClosed.classList.remove('hidden');
-        } else {
-            input.type = 'password';
-            eyeOpen.classList.remove('hidden');
-            eyeClosed.classList.add('hidden');
-        }
-    }
-
-    function toggleLoginPassword() {
-        const input = document.getElementById('adminPass');
-        const btn = document.querySelector('#loginView .password-toggle');
         if (!input || !btn) return;
 
         const eyeOpen = btn.querySelector('.eye-open');
