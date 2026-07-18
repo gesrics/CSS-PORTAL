@@ -157,6 +157,7 @@
 
         .card.vacant { opacity: 0.6; }
         .card.vacant:hover { opacity: 0.8; }
+
         .btn-session {
             width: 100%;
             padding: 10px 14px;
@@ -213,7 +214,7 @@
             background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 8px;
         }
-        .monitor-header p { color: rgba(255, 255, 255, 0.5); font-size: 14px; font-weight: 500; }
+        .monitor-header p { color: rgba(255,255,255,0.5); font-size: 14px; font-weight: 500; }
 
         .tabs {
             display: flex; gap: 8px; margin-bottom: 24px;
@@ -387,7 +388,6 @@
         document.getElementById('css12Section').style.display = tab === 'css12' ? 'block' : 'none';
     }
 
-    // Active means student_id exists AND time_out is null (so after end, it becomes inactive but still shows last name/LRN)
     function isActiveSession(session) {
         return !!session.student_id && !session.time_out;
     }
@@ -423,16 +423,14 @@
         const timeIn = formatTime(s.time_in);
         const timeOut = formatTime(s.time_out);
 
-        const card = document.createElement('div');
-        card.className = 'card' + (active ? ' active-student' : ' vacant');
-        card.setAttribute('data-pc', s.pc_number);
-        card.setAttribute('data-active', String(active));
+        const showTimeIn = active; // only show Time In when not ended
+        const showDuration = active;
 
         const timeBlocks = `
             <div class="meta">
                 <div class="box">
                     <div class="k">Time In</div>
-                    <div class="v">${escapeHtml(timeIn)}</div>
+                    <div class="v">${showTimeIn ? escapeHtml(timeIn) : '--'}</div>
                 </div>
                 <div class="box">
                     <div class="k">Time Out</div>
@@ -441,15 +439,20 @@
             </div>
         `;
 
-        const durationHtml = active
+        const durationHtml = showDuration
             ? `<div class="duration" data-time-in="${escapeHtml(String(s.time_in || ''))}">Duration: 00h 00m 00s</div>`
             : `<div class="duration" style="color: rgba(255,255,255,0.35);">Duration: --</div>`;
 
         const endBtn = active
             ? `<div style="margin-top:14px;">
-                   <button class="btn-session" onclick="endSession('${s.pc_number}')" data-pc="${s.pc_number}">End Session</button>
+                   <button class="btn-session" onclick="endSession('${s.pc_number}')">End Session</button>
                </div>`
             : '';
+
+        const card = document.createElement('div');
+        card.className = 'card' + (active ? ' active-student' : ' vacant');
+        card.setAttribute('data-pc', s.pc_number);
+        card.setAttribute('data-active', String(active));
 
         card.innerHTML = `
             <h3>PC-${s.pc_number}</h3>
@@ -476,16 +479,13 @@
 
         const nowIso = new Date().toISOString();
 
-        // IMPORTANT CHANGE:
-        // Don't clear student_id/student_name so 12 CSS section can still show Name + LRN after end.
+        // Keep student_id/student_name for history, but Time In will be hidden in UI after end
         const { error } = await client.from('active_sessions').update({
-            time_out: nowIso,
-            // keep student_id, student_name, time_in
+            time_out: nowIso
         }).eq('pc_number', pc);
 
         if (error) Swal.fire('Error', 'Failed to end session', 'error');
 
-        // refresh quickly
         fetchStatus();
     }
 
@@ -519,12 +519,7 @@
             if (active) activeCount++;
             if (active && isCss12Student(session)) css12ActiveCount++;
 
-            // All PCs
             allGrid.appendChild(createCard(session));
-
-            // Only show cards in CSS12 section, but keep your grid consistent (shows vacant style too)
-            // You asked: show after end in 12 CSS monitor; since we won't null student_name/id anymore,
-            // it will still appear there with Time Out.
             css12Grid.appendChild(createCard(session));
         }
 
