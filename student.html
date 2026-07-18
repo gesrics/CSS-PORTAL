@@ -23,7 +23,6 @@
             --text-faint: rgba(245, 245, 247, 0.35);
             --accent: #0a84ff;
             --accent-2: #06b6d4;
-            --danger: #ff453a;
             --ease: cubic-bezier(0.4, 0, 0.2, 1);
             --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -306,7 +305,6 @@
 
         <section class="glass-card anim hidden" id="mainCard">
             <div class="section-tag">12 CSS</div>
-
             <div class="anim" id="authView">
                 <div class="input-group">
                     <label for="lrn">Learner Reference Number</label>
@@ -318,44 +316,12 @@
     </div>
 
     <script>
-        const client = supabase.createClient(
-            "https://kofyybvvzzlcxemwlaqu.supabase.co",
-            "sb_publishable_EXyi06rbFxY4OUV1XRyfjw_omMnlxFN"
-        );
-
+        const client = supabase.createClient("https://kofyybvvzzlcxemwlaqu.supabase.co", "sb_publishable_EXyi06rbFxY4OUV1XRyfjw_omMnlxFN");
         const params = new URLSearchParams(window.location.search);
         let targetPC = String(Math.min(parseInt(params.get('pc') || '1', 10) || 1, 10)).padStart(2, '0');
-        let qrAccessGranted = false;
-        let html5Qr = null;
-        let barcodeStream = null;
-        let rafId = null;
+        let qrAccessGranted = false, html5Qr = null, barcodeStream = null, rafId = null;
 
         document.getElementById('pcBadgeText').textContent = `PC ${targetPC}`;
-
-        function showPCBadge(pc) {
-            document.getElementById('pcBadgeText').textContent = `PC ${pc}`;
-            document.getElementById('pcBadge').classList.add('show');
-        }
-
-        function showView(el) {
-            el.classList.remove('hidden');
-            requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('show')));
-        }
-
-        function hideView(el, done) {
-            el.classList.remove('show');
-            setTimeout(() => { el.classList.add('hidden'); if (done) done(); }, 420);
-        }
-
-        function switchView(from, to) {
-            hideView(from, () => showView(to));
-        }
-
-        function setStatus(msg, color) {
-            const el = document.getElementById('scanStatus');
-            el.textContent = msg;
-            el.style.color = color || 'var(--text-dim)';
-        }
 
         function extractPC(text) {
             let pc = String(text || '').trim();
@@ -368,6 +334,20 @@
             }
             pc = pc.replace(/^0+/, '') || '1';
             return String(Math.min(Math.max(parseInt(pc, 10) || 1, 1), 10)).padStart(2, '0');
+        }
+
+        function showPCBadge(pc) {
+            document.getElementById('pcBadgeText').textContent = `PC ${pc}`;
+            document.getElementById('pcBadge').classList.add('show');
+        }
+
+        function showView(el) { el.classList.remove('hidden'); requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('show'))); }
+        function hideView(el, done) { el.classList.remove('show'); setTimeout(() => { el.classList.add('hidden'); if (done) done(); }, 420); }
+
+        function setStatus(msg, color) {
+            const el = document.getElementById('scanStatus');
+            el.textContent = msg;
+            el.style.color = color || 'var(--text-dim)';
         }
 
         function stopScanner() {
@@ -410,9 +390,7 @@
                 const reader = document.getElementById('qr-reader');
                 reader.innerHTML = '';
                 reader.appendChild(video);
-                barcodeStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
-                });
+                barcodeStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } });
                 video.srcObject = barcodeStream;
                 await video.play();
                 setStatus('Point the QR code at the frame');
@@ -473,27 +451,17 @@
 
             const btn = document.getElementById('signInBtn');
             btn.disabled = true;
-            showView(document.getElementById('mainCard'));
             try {
-                const { data: student } = await client
-                    .from('student_roster')
-                    .select('student_name')
-                    .eq('lrn', lrn)
-                    .maybeSingle();
+                const { data: student } = await client.from('student_roster').select('student_name').eq('lrn', lrn).maybeSingle();
 
                 if (student) {
                     const now = new Date();
-                    const payload = {
+                    const { error } = await client.from('active_sessions').update({
                         student_id: lrn,
                         student_name: `${student.student_name} - 12 CSS`,
                         time_in: now.toISOString(),
                         time_out: null
-                    };
-
-                    const { error } = await client
-                        .from('active_sessions')
-                        .update(payload)
-                        .eq('pc_number', Number(targetPC));
+                    }).eq('pc_number', Number(targetPC));
 
                     if (error) throw error;
 
