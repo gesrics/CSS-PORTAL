@@ -11,7 +11,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: #000;
@@ -21,7 +20,6 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
-
         .background {
             position: fixed;
             inset: 0;
@@ -31,7 +29,6 @@
                 radial-gradient(circle at 40% 40%, rgba(59, 130, 246, 0.1), transparent 50%);
             z-index: -1;
         }
-
         .background::before {
             content: '';
             position: absolute;
@@ -40,13 +37,10 @@
             opacity: 0.03;
             mix-blend-mode: overlay;
         }
-
         .view { display: none; opacity: 0; transform: translateY(16px); transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
         .view.active { display: block; opacity: 1; transform: translateY(0); }
-
         .admin-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
         .login-wrapper { min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
-
         .glass-card {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(40px) saturate(180%);
@@ -59,14 +53,7 @@
             text-align: center;
             animation: fadeInUp 0.6s ease-out;
         }
-
-        .glass-card h2 {
-            margin-bottom: 24px;
-            font-size: 24px;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-        }
-
+        .glass-card h2 { margin-bottom: 24px; font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
         .nav {
             display: flex;
             justify-content: space-between;
@@ -77,7 +64,6 @@
             gap: 12px;
             position: relative;
         }
-
         .nav-title {
             font-size: 24px;
             font-weight: 700;
@@ -87,7 +73,6 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-
         .burger-wrap { position: relative; margin-left: auto; }
         .burger-btn {
             width: 44px; height: 44px; border-radius: 14px;
@@ -100,7 +85,6 @@
         }
         .burger-btn:hover { transform: translateY(-1px); background: rgba(255,255,255,0.1); }
         .burger-btn svg { width: 20px; height: 20px; }
-
         .burger-menu {
             position: absolute;
             right: 0; top: 54px;
@@ -118,7 +102,6 @@
             z-index: 20;
         }
         .burger-menu.show { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
-
         .burger-item {
             width: 100%; border: none; background: transparent;
             color: rgba(255,255,255,0.92);
@@ -131,9 +114,7 @@
         .burger-item:hover { background: rgba(255,255,255,0.06); transform: translateX(2px); }
         .burger-item.danger { color: #fca5a5; }
         .burger-divider { height: 1px; margin: 8px 6px; background: rgba(255,255,255,0.08); }
-
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-
         .card {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(40px) saturate(180%);
@@ -148,19 +129,13 @@
         }
         .card.active-student { border-left-color: #06b6d4; }
         .card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4); border-color: rgba(255, 255, 255, 0.15); }
-
-        .card h3 {
-            font-size: 18px; font-weight: 600; margin-bottom: 8px;
-            letter-spacing: -0.01em; color: rgba(255, 255, 255, 0.95);
-        }
+        .card h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; letter-spacing: -0.01em; color: rgba(255, 255, 255, 0.95); }
         .card .student-name { font-size: 15px; color: rgba(255, 255, 255, 0.9); font-weight: 500; margin-bottom: 12px; }
         .card .time-info { font-size: 13px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px; font-variant-numeric: tabular-nums; }
         .card .duration { font-size: 13px; color: #06b6d4; font-weight: 600; margin-bottom: 16px; font-variant-numeric: tabular-nums; }
-
         .card.vacant { opacity: 0.6; }
         .card.vacant .student-name { color: rgba(255, 255, 255, 0.4); }
         .card.vacant:hover { opacity: 0.8; }
-
         .btn {
             padding: 10px 18px;
             background: linear-gradient(135deg, #3b82f6, #06b6d4);
@@ -171,7 +146,6 @@
         }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3); }
         .btn:active { transform: translateY(0); }
-
         .input-group { margin-bottom: 20px; text-align: left; }
         .input-group label { display: block; font-size: 13px; font-weight: 500; color: rgba(255, 255, 255, 0.7); margin-bottom: 8px; letter-spacing: 0.02em; }
         .input-field {
@@ -183,7 +157,6 @@
         }
         .input-field:focus { border-color: rgba(59, 130, 246, 0.5); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
         .input-field::placeholder { color: rgba(255, 255, 255, 0.3); }
-
         .password-wrapper { position: relative; }
         .password-toggle {
             position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
@@ -194,14 +167,11 @@
         .password-toggle:hover { color: rgba(255, 255, 255, 0.9); background: rgba(255, 255, 255, 0.05); }
         .password-toggle svg { width: 20px; height: 20px; }
         .hidden { display: none !important; }
-
         .swal2-password-wrapper { position: relative; }
         .swal2-password-wrapper .input-field { padding-right: 50px; }
         .swal2-password-wrapper .password-toggle { right: 10px; top: 60%; transform: translateY(-50%); }
-
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @media (max-width: 768px) { .nav { padding: 16px 0; } .grid { grid-template-columns: 1fr; } .glass-card { padding: 32px; } .burger-menu { width: 200px; } }
-
         .monitor-header { text-align: center; margin-bottom: 40px; }
         .monitor-header h1 {
             font-size: 36px; font-weight: 700; letter-spacing: -0.02em;
@@ -209,7 +179,6 @@
             -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 8px;
         }
         .monitor-header p { color: rgba(255, 255, 255, 0.5); font-size: 14px; font-weight: 500; }
-
         .tabs {
             display: flex; gap: 8px; margin-bottom: 24px;
             border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 0;
@@ -221,7 +190,6 @@
         }
         .tab:hover { color: rgba(255, 255, 255, 0.8); }
         .tab.active { color: #fff; border-bottom-color: #06b6d4; }
-
         .section-header {
             display: flex; align-items: center; justify-content: space-between;
             margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.06);
@@ -232,7 +200,6 @@
             background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.3);
             border-radius: 20px; font-size: 12px; font-weight: 600; color: #06b6d4;
         }
-
         .session-actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
         .btn-session {
             flex: 1; min-width: 140px; padding: 10px 14px; border-radius: 12px;
@@ -241,7 +208,6 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-family: 'Inter', sans-serif;
         }
         .btn-session:hover { background: rgba(239, 68, 68, 0.25); transform: translateY(-2px); }
-
         .apple-swal-popup {
             background: rgba(10, 10, 12, 0.72) !important;
             backdrop-filter: blur(60px) saturate(200%) !important;
@@ -253,17 +219,16 @@
         .apple-swal-title { color: #fff !important; font-weight: 700 !important; letter-spacing: -0.02em !important; }
         .apple-swal-html { color: rgba(255,255,255,0.72) !important; }
         .apple-swal-confirm, .apple-swal-cancel { border-radius: 12px !important; font-weight: 600 !important; }
-
         .swal2-container.swal2-backdrop-show {
             background: rgba(0, 0, 0, 0.82) !important;
             backdrop-filter: blur(18px) saturate(140%) !important;
             -webkit-backdrop-filter: blur(18px) saturate(140%) !important;
         }
+        .dot { width: 6px; height: 6px; border-radius: 50%; }
     </style>
 </head>
 <body>
     <div class="background"></div>
-
     <div id="loginView" class="view active">
         <div class="login-wrapper">
             <div class="glass-card">
@@ -281,7 +246,6 @@
             </div>
         </div>
     </div>
-
     <div id="dashView" class="view">
         <div class="admin-container">
             <div class="nav">
@@ -301,20 +265,17 @@
                     </div>
                 </div>
             </div>
-
             <div class="monitor-header">
                 <h1>ADMIN LIVE MONITOR</h1>
                 <p>Real-time PC session tracking</p>
             </div>
-
             <div class="tabs">
                 <button class="tab active" onclick="switchTab('all')" id="tabAll">All PCs</button>
                 <button class="tab" onclick="switchTab('css12')" id="tabCss12">
-                    <span class="dot" style="width:6px;height:6px;border-radius:50%;background:#06b6d4;display:inline-block;margin-right:6px;animation: pulse-dot 2s ease-in-out infinite;"></span>
+                    <span class="dot" style="background:#06b6d4;display:inline-block;margin-right:6px;animation:pulse-dot 2s ease-in-out infinite;"></span>
                     12 CSS
                 </button>
             </div>
-
             <div id="allPcsSection">
                 <div class="section-header">
                     <h2 class="section-title">ALL PC SESSIONS</h2>
@@ -322,7 +283,6 @@
                 </div>
                 <div class="grid" id="monitorGrid"></div>
             </div>
-
             <div id="css12Section" style="display:none; margin-top: 32px;">
                 <div class="section-header">
                     <h2 class="section-title">12 CSS SECTION MONITOR</h2>
@@ -336,11 +296,10 @@
             </div>
         </div>
     </div>
-
     <script>
         const client = supabase.createClient("https://kofyybvvzzlcxemwlaqu.supabase.co", "sb_publishable_EXyi06rbFxY4OUV1XRyfjw_omMnlxFN");
+        const TOTAL_PCS = 10;
         let burgerOpen = false;
-
         async function verifyLogin() {
             const pass = document.getElementById('adminPass').value;
             const { data } = await client.from('admin_config').select('password').eq('id', 1).single();
@@ -352,12 +311,10 @@
                 Swal.fire('Error', 'Invalid Password', 'error');
             }
         }
-
         function toggleBurgerMenu() {
             burgerOpen = !burgerOpen;
             document.getElementById('burgerMenu').classList.toggle('show', burgerOpen);
         }
-
         document.addEventListener('click', (e) => {
             const wrap = document.querySelector('.burger-wrap');
             if (wrap && !wrap.contains(e.target)) {
@@ -365,42 +322,31 @@
                 document.getElementById('burgerMenu').classList.remove('show');
             }
         });
-
         function formatTime(iso) {
             if (!iso) return '--';
             const d = new Date(iso);
             return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
         }
-
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
-
         let previousSessions = null;
         let durationIntervalStarted = false;
         let currentTab = 'all';
-
         function switchTab(tab) {
             currentTab = tab;
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.getElementById(tab === 'all' ? 'tabAll' : 'tabCss12').classList.add('active');
-
-            if (tab === 'all') {
-                document.getElementById('allPcsSection').style.display = 'block';
-                document.getElementById('css12Section').style.display = 'none';
-            } else {
-                document.getElementById('allPcsSection').style.display = 'none';
-                document.getElementById('css12Section').style.display = 'block';
-            }
+            document.getElementById('allPcsSection').style.display = tab === 'all' ? 'block' : 'none';
+            document.getElementById('css12Section').style.display = tab === 'css12' ? 'block' : 'none';
         }
-
         function startDurationTicker() {
             if (durationIntervalStarted) return;
             durationIntervalStarted = true;
             setInterval(() => {
-                document.querySelectorAll('.card[data-active="true"] .duration').forEach(el => {
+                document.querySelectorAll('.card[data-active=\"true\"] .duration').forEach(el => {
                     const iso = el.getAttribute('data-time-in');
                     if (!iso) return;
                     const diff = new Date() - new Date(iso);
@@ -411,7 +357,6 @@
                 });
             }, 1000);
         }
-
         function createCard(s, showEndSession) {
             const isActive = !!s.student_id;
             const timeInAttr = s.time_in || '';
@@ -429,7 +374,6 @@
             } else if (s.time_out) {
                 timeHtml = `<p class="time-info">Time Out: ${formatTime(s.time_out)}</p>`;
             }
-
             const card = document.createElement('div');
             card.className = 'card' + (isActive ? ' active-student' : ' vacant');
             card.setAttribute('data-pc', s.pc_number);
@@ -440,7 +384,6 @@
                 ${timeHtml}`;
             return card;
         }
-
         async function endSession(pc, name) {
             const result = await Swal.fire({
                 title: 'End Session?',
@@ -451,67 +394,43 @@
                 confirmButtonColor: '#ef4444'
             });
             if (!result.isConfirmed) return;
-
             await client.from('active_sessions').update({
                 student_id: null,
                 student_name: null,
                 time_in: null,
                 time_out: new Date().toISOString()
             }).eq('pc_number', pc);
-
             Swal.fire('Ended', 'The session has been terminated.', 'success');
         }
-
-        async function fetchStatus() {
-            const { data: sessions } = await client.from('active_sessions').select('*');
-            const sorted = sessions ? sessions.sort((a,b) => a.pc_number - b.pc_number) : [];
-
-            if (!previousSessions || JSON.stringify(previousSessions) !== JSON.stringify(sorted)) {
-                previousSessions = sorted;
-                const allGrid = document.getElementById('monitorGrid');
-                const css12Grid = document.getElementById('css12Grid');
-                const css12Empty = document.getElementById('css12Empty');
-
-                allGrid.innerHTML = '';
-                css12Grid.innerHTML = '';
-
-                let activeCount = 0;
-                let css12ActiveCount = 0;
-
-                if (sorted.length > 0) {
-                    sorted.forEach(s => {
-                        const isActive = !!s.student_id;
-                        if (isActive) activeCount++;
-
-                        const isCss12 = isCss12Student(s);
-                        if (isActive && isCss12) css12ActiveCount++;
-
-                        allGrid.appendChild(createCard(s, false));
-
-                        if (isCss12) {
-                            css12Grid.appendChild(createCard(s, true));
-                        }
-                    });
-                }
-
-                document.getElementById('allCount').textContent = `${activeCount} Active`;
-                document.getElementById('css12Count').textContent = `${css12ActiveCount} Active`;
-
-                if (css12ActiveCount === 0 && css12Grid.children.length === 0) {
-                    css12Empty.style.display = 'block';
-                } else {
-                    css12Empty.style.display = 'none';
-                }
-            }
-            startDurationTicker();
-        }
-
         function isCss12Student(session) {
             if (!session.student_name) return false;
             const name = String(session.student_name).toLowerCase();
             return name.includes('css') || name.includes('12');
         }
-
+        async function fetchStatus() {
+            const { data: sessions } = await client.from('active_sessions').select('*');
+            const sorted = sessions ? sessions.sort((a,b) => a.pc_number - b.pc_number) : [];
+            const allGrid = document.getElementById('monitorGrid');
+            const css12Grid = document.getElementById('css12Grid');
+            const css12Empty = document.getElementById('css12Empty');
+            allGrid.innerHTML = '';
+            css12Grid.innerHTML = '';
+            let activeCount = 0;
+            let css12ActiveCount = 0;
+            for (let i = 1; i <= TOTAL_PCS; i++) {
+                const session = sorted.find(s => String(s.pc_number) === String(i)) || { pc_number: i, student_id: null, student_name: null, time_in: null, time_out: null };
+                const isActive = !!session.student_id;
+                if (isActive) activeCount++;
+                const isCss12 = isCss12Student(session) || i <= TOTAL_PCS;
+                if (isActive && isCss12) css12ActiveCount++;
+                allGrid.appendChild(createCard(session, false));
+                if (i <= TOTAL_PCS) css12Grid.appendChild(createCard(session, true));
+            }
+            document.getElementById('allCount').textContent = `${activeCount} Active`;
+            document.getElementById('css12Count').textContent = `${css12ActiveCount} Active`;
+            css12Empty.style.display = css12ActiveCount === 0 ? 'block' : 'none';
+            startDurationTicker();
+        }
         async function toggleLoginPassword() {
             const input = document.getElementById('adminPass');
             const btn = document.querySelector('#loginView .password-toggle');
@@ -527,7 +446,6 @@
                 eyeClosed.classList.add('hidden');
             }
         }
-
         async function resetPassword() {
             const result = await Swal.fire({
                 title: 'Reset Password',
@@ -548,29 +466,13 @@
                 confirmButtonColor: '#0a84ff',
                 background: '#0b0b0f',
                 color: '#fff',
-                backdrop: 'rgba(0, 0, 0, 0.82)',
-                customClass: {
-                    popup: 'apple-swal-popup',
-                    title: 'apple-swal-title',
-                    htmlContainer: 'apple-swal-html',
-                    confirmButton: 'apple-swal-confirm',
-                    cancelButton: 'apple-swal-cancel'
-                },
-                preConfirm: () => document.getElementById('swalNewPass').value
+                backdrop: 'rgba(0, 0, 0, 0.82)'
             });
             if (result.value) {
                 await client.from('admin_config').update({ password: result.value }).eq('id', 1);
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Password Updated',
-                    text: 'Admin password has been changed successfully.',
-                    background: '#0b0b0f',
-                    color: '#fff',
-                    confirmButtonColor: '#0a84ff'
-                });
+                Swal.fire({ icon: 'success', title: 'Password Updated', text: 'Admin password has been changed successfully.', background: '#0b0b0f', color: '#fff', confirmButtonColor: '#0a84ff' });
             }
         }
-
         function toggleSwalPassword() {
             const input = document.getElementById('swalNewPass');
             const btn = document.querySelector('.swal2-password-wrapper .password-toggle');
@@ -586,7 +488,6 @@
                 eyeClosed.classList.add('hidden');
             }
         }
-
         client.channel('active_sessions').on('postgres_changes', { event: '*', schema: 'public', table: 'active_sessions' }, fetchStatus).subscribe();
     </script>
 </body>
