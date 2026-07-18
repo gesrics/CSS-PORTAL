@@ -2,540 +2,520 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#000000">
-    <title>DNHS Terminal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNHS Admin Portal</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #050507;
-            --glass: rgba(255, 255, 255, 0.055);
-            --glass-strong: rgba(255, 255, 255, 0.08);
-            --border: rgba(255, 255, 255, 0.10);
-            --border-soft: rgba(255, 255, 255, 0.06);
-            --text: #f5f5f7;
-            --text-dim: rgba(245, 245, 247, 0.55);
-            --text-faint: rgba(245, 245, 247, 0.35);
-            --accent: #0a84ff;
-            --accent-2: #06b6d4;
-            --ease: cubic-bezier(0.4, 0, 0.2, 1);
-            --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        html, body { height: 100%; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--bg);
-            color: var(--text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #000;
+            color: #fff;
             min-height: 100vh;
-            min-height: 100dvh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
-            text-rendering: optimizeLegibility;
+            -moz-osx-font-smoothing: grayscale;
         }
         .background {
             position: fixed;
             inset: 0;
             background:
-                radial-gradient(60% 50% at 18% 82%, rgba(10, 132, 255, 0.22), transparent 60%),
-                radial-gradient(55% 45% at 82% 18%, rgba(6, 182, 212, 0.16), transparent 60%),
-                radial-gradient(70% 60% at 50% 50%, rgba(120, 80, 220, 0.08), transparent 70%);
-            z-index: 0;
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.25), transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 115, 0.15), transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(59, 130, 246, 0.1), transparent 50%);
+            z-index: -1;
         }
-        .background::after {
+        .background::before {
             content: '';
             position: absolute;
             inset: 0;
-            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-            opacity: 0.025;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.03;
             mix-blend-mode: overlay;
         }
-        .splash {
-            position: fixed;
-            inset: 0;
-            z-index: 60;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 26px;
-            background: var(--bg);
-            transition: opacity 0.7s var(--ease), visibility 0.7s var(--ease);
-        }
-        .splash.hide { opacity: 0; visibility: hidden; }
-        .splash-logo {
-            width: 92px; height: 92px;
-            border-radius: 26px;
-            background: linear-gradient(145deg, #0a84ff, #06b6d4);
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 20px 60px rgba(10, 132, 255, 0.35), inset 0 1px 0 rgba(255,255,255,0.4);
-        }
-        .splash-logo svg { width: 46px; height: 46px; }
-        .splash-title { font-size: 19px; font-weight: 600; letter-spacing: -0.01em; color: var(--text); opacity: 0.9; }
-        .splash-spinner {
-            width: 26px; height: 26px;
-            border-radius: 50%;
-            border: 2.5px solid rgba(255,255,255,0.12);
-            border-top-color: var(--accent);
-            animation: spin 0.9s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .terminal {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            max-width: 430px;
-            padding: 22px 18px;
-        }
-        .terminal-header { text-align: center; margin-bottom: 26px; }
-        .pc-badge {
-            display: inline-flex; align-items: center; gap: 8px;
-            background: var(--glass);
-            border: 1px solid var(--border);
-            border-radius: 100px;
-            padding: 7px 16px;
-            font-size: 12.5px; font-weight: 500;
-            color: var(--text-dim);
-            margin-bottom: 20px;
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(8px);
-            transition: all 0.3s var(--ease);
-        }
-        .pc-badge.show { opacity: 1; visibility: visible; transform: translateY(0); }
-        .pc-badge .dot {
-            width: 7px; height: 7px; border-radius: 50%;
-            background: var(--accent-2);
-            box-shadow: 0 0 10px rgba(6, 182, 212, 0.7);
-            animation: pulse 2.4s var(--ease) infinite;
-        }
-        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
-        .terminal-header h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.1; }
-        .terminal-header p { margin-top: 7px; font-size: 14px; color: var(--text-dim); }
-        .anim {
-            opacity: 0;
-            transform: translateY(18px) scale(0.985);
-            transition: opacity 0.55s var(--ease), transform 0.55s var(--ease);
-            pointer-events: none;
-        }
-        .anim.show { opacity: 1; transform: none; pointer-events: auto; }
-        .hidden { display: none !important; }
+        .view { display: none; opacity: 0; transform: translateY(16px); transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+        .view.active { display: block; opacity: 1; transform: translateY(0); }
+        .admin-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .login-wrapper { min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
         .glass-card {
-            background: var(--glass);
-            backdrop-filter: blur(38px) saturate(180%);
-            -webkit-backdrop-filter: blur(38px) saturate(180%);
-            border: 1px solid var(--border);
-            border-radius: 26px;
-            padding: 30px 26px;
-            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-        }
-        .gate-icon {
-            width: 54px; height: 54px; margin: 0 auto 18px;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 16px;
-            background: var(--glass-strong);
-            border: 1px solid var(--border-soft);
-            color: var(--text);
-        }
-        .gate-icon svg { width: 26px; height: 26px; }
-        .gate-card { text-align: center; }
-        .gate-card h2 { font-size: 21px; font-weight: 700; letter-spacing: -0.02em; }
-        .gate-card .sub { margin-top: 8px; font-size: 13.5px; color: var(--text-dim); line-height: 1.5; }
-        .scanner-wrap {
-            position: relative;
-            margin: 22px auto 4px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
             width: 100%;
-            max-width: 280px;
-            aspect-ratio: 1 / 1;
+            max-width: 380px;
+            text-align: center;
+            animation: fadeInUp 0.6s ease-out;
         }
-        #qr-reader {
-            width: 100%; height: 100%;
-            border-radius: 22px;
-            overflow: hidden;
-            background: #000;
-            border: 1px solid var(--border-soft);
+        .glass-card h2 { margin-bottom: 24px; font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 12px;
             position: relative;
         }
-        #qr-reader video {
-            width: 100% !important;
-            height: 100% !important;
-            object-fit: cover;
-            border-radius: 22px;
-            display: block;
+        .nav-title {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
-        .scan-frame {
-            position: absolute; inset: 0;
-            border-radius: 22px;
-            pointer-events: none;
-            box-shadow: inset 0 0 0 1.5px rgba(10, 132, 255, 0.55);
+        .burger-wrap { position: relative; margin-left: auto; }
+        .burger-btn {
+            width: 44px; height: 44px; border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(20px) saturate(180%);
+            color: #fff; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.25s ease;
         }
-        .scan-frame .corner {
-            position: absolute; width: 26px; height: 26px;
-            border: 2.5px solid var(--accent);
-            border-radius: 6px;
+        .burger-btn:hover { transform: translateY(-1px); background: rgba(255,255,255,0.1); }
+        .burger-btn svg { width: 20px; height: 20px; }
+        .burger-menu {
+            position: absolute;
+            right: 0; top: 54px;
+            width: 220px;
+            padding: 10px;
+            border-radius: 18px;
+            background: rgba(10, 10, 12, 0.92);
+            border: 1px solid rgba(255,255,255,0.08);
+            backdrop-filter: blur(28px) saturate(180%);
+            -webkit-backdrop-filter: blur(28px) saturate(180%);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+            opacity: 0; visibility: hidden;
+            transform: translateY(-8px) scale(0.98);
+            transition: all 0.22s ease;
+            z-index: 20;
         }
-        .scan-frame .tl { top: 14px; left: 14px; border-right: none; border-bottom: none; }
-        .scan-frame .tr { top: 14px; right: 14px; border-left: none; border-bottom: none; }
-        .scan-frame .bl { bottom: 14px; left: 14px; border-right: none; border-top: none; }
-        .scan-frame .br { bottom: 14px; right: 14px; border-left: none; border-top: none; }
-        .scan-line {
-            position: absolute; left: 12%; right: 12%; height: 2px; top: 10%;
-            background: linear-gradient(90deg, transparent, var(--accent-2), transparent);
-            box-shadow: 0 0 14px rgba(6, 182, 212, 0.8);
-            border-radius: 2px;
-            animation: scanMove 2.6s var(--ease) infinite;
+        .burger-menu.show { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+        .burger-item {
+            width: 100%; border: none; background: transparent;
+            color: rgba(255,255,255,0.92);
+            padding: 12px 14px; border-radius: 12px;
+            text-align: left; font-size: 14px; font-weight: 500;
+            cursor: pointer; transition: background 0.2s ease, transform 0.2s ease;
+            font-family: 'Inter', sans-serif;
+            display: flex; align-items: center; gap: 10px;
         }
-        @keyframes scanMove { 0% { top: 10%; } 50% { top: 90%; } 100% { top: 10%; } }
-        .scan-status {
-            margin-top: 14px; font-size: 13px; font-weight: 500;
-            color: var(--text-dim); min-height: 18px;
+        .burger-item:hover { background: rgba(255,255,255,0.06); transform: translateX(2px); }
+        .burger-item.danger { color: #fca5a5; }
+        .burger-divider { height: 1px; margin: 8px 6px; background: rgba(255,255,255,0.08); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 24px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-left: 3px solid transparent;
+            animation: fadeInUp 0.6s ease-out forwards;
+            opacity: 0;
         }
-        .input-group { margin-bottom: 18px; text-align: left; }
-        .input-group label {
-            display: block; font-size: 12.5px; font-weight: 500;
-            color: var(--text-dim); margin-bottom: 9px;
+        .card.active-student { border-left-color: #06b6d4; }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4); border-color: rgba(255, 255, 255, 0.15); }
+        .card h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; letter-spacing: -0.01em; color: rgba(255, 255, 255, 0.95); }
+        .card .student-name { font-size: 15px; color: rgba(255, 255, 255, 0.9); font-weight: 500; margin-bottom: 12px; }
+        .card .time-info { font-size: 13px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px; font-variant-numeric: tabular-nums; }
+        .card .duration { font-size: 13px; color: #06b6d4; font-weight: 600; margin-bottom: 16px; font-variant-numeric: tabular-nums; }
+        .card.vacant { opacity: 0.6; }
+        .card.vacant .student-name { color: rgba(255, 255, 255, 0.4); }
+        .card.vacant:hover { opacity: 0.8; }
+        .btn {
+            padding: 10px 18px;
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            border: none; border-radius: 12px;
+            color: #fff; font-size: 13px; font-weight: 600;
+            cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap; font-family: 'Inter', sans-serif; width: 100%;
         }
-        .input-group input {
-            width: 100%; padding: 16px 18px;
-            background: rgba(0, 0, 0, 0.28);
-            border: 1px solid var(--border);
-            border-radius: 15px;
-            color: var(--text); font-size: 16px; font-family: inherit;
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3); }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; font-size: 13px; font-weight: 500; color: rgba(255, 255, 255, 0.7); margin-bottom: 8px; }
+        .input-field {
+            width: 100%; padding: 16px 50px 16px 18px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px; color: #fff; font-size: 15px; font-family: 'Inter', sans-serif;
             outline: none;
         }
-        .input-group input:focus {
-            border-color: rgba(10, 132, 255, 0.55);
-            box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.14);
+        .password-wrapper { position: relative; }
+        .password-toggle {
+            position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+            background: none; border: none; color: rgba(255, 255, 255, 0.5);
+            cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center;
+            border-radius: 8px;
         }
-        .btn {
-            width: 100%; padding: 16px;
-            background: linear-gradient(135deg, #0a84ff, #06b6d4);
-            border: none; border-radius: 15px;
-            font-weight: 600; font-size: 15.5px; font-family: inherit;
-            color: #fff; cursor: pointer;
-            transition: transform 0.25s var(--ease), box-shadow 0.35s var(--ease);
-            box-shadow: 0 10px 30px rgba(10, 132, 255, 0.28);
+        .hidden { display: none !important; }
+        .swal2-password-wrapper { position: relative; }
+        .swal2-password-wrapper .input-field { padding-right: 50px; }
+        .swal2-password-wrapper .password-toggle { right: 10px; top: 60%; transform: translateY(-50%); }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .monitor-header { text-align: center; margin-bottom: 40px; }
+        .monitor-header h1 {
+            font-size: 36px; font-weight: 700; letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 8px;
         }
-        .btn:hover { transform: translateY(-2px); }
+        .monitor-header p { color: rgba(255, 255, 255, 0.5); font-size: 14px; font-weight: 500; }
+        .tabs {
+            display: flex; gap: 8px; margin-bottom: 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 0;
+        }
+        .tab {
+            padding: 10px 18px; background: none; border: none; border-bottom: 2px solid transparent;
+            color: rgba(255, 255, 255, 0.5); font-size: 14px; font-weight: 500; cursor: pointer;
+            transition: all 0.2s ease; font-family: 'Inter', sans-serif; margin-bottom: -1px;
+        }
+        .tab.active { color: #fff; border-bottom-color: #06b6d4; }
+        .section-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .section-title { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; color: rgba(255, 255, 255, 0.95); }
+        .section-badge {
+            display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px;
+            background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 20px; font-size: 12px; font-weight: 600; color: #06b6d4;
+        }
+        .session-actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+        .btn-session {
+            flex: 1; min-width: 140px; padding: 10px 14px; border-radius: 12px;
+            border: 1px solid rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5; font-size: 12px; font-weight: 600; cursor: pointer;
+        }
+        .dot { width: 6px; height: 6px; border-radius: 50%; }
+        .swal2-container.swal2-backdrop-show {
+            background: rgba(0, 0, 0, 0.82) !important;
+            backdrop-filter: blur(18px) saturate(140%) !important;
+            -webkit-backdrop-filter: blur(18px) saturate(140%) !important;
+        }
     </style>
 </head>
 <body>
     <div class="background"></div>
-    <div class="splash" id="splash">
-        <div class="splash-logo">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2.5" y="4" width="19" height="13" rx="2.5"></rect>
-                <path d="M8 21h8M12 17v4"></path>
-            </svg>
+
+    <div id="loginView" class="view active">
+        <div class="login-wrapper">
+            <div class="glass-card">
+                <h2>Admin Access</h2>
+                <div class="input-group">
+                    <div class="password-wrapper">
+                        <input type="password" id="adminPass" class="input-field" placeholder="Enter Password">
+                        <button class="password-toggle" onclick="toggleLoginPassword()" type="button" aria-label="Toggle password visibility">
+                            <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <svg class="eye-closed hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.9 9.9 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <button class="btn" onclick="verifyLogin()">LOG IN</button>
+            </div>
         </div>
-        <div class="splash-title">DNHS Computer Lab</div>
-        <div class="splash-spinner"></div>
     </div>
 
-    <div class="terminal">
-        <div class="terminal-header">
-            <div class="pc-badge" id="pcBadge"><span class="dot"></span><span id="pcBadgeText"></span></div>
-            <h1 id="pageTitle">Student Portal</h1>
-            <p id="pageSubtitle">Scan the station QR code to begin</p>
+    <div id="dashView" class="view">
+        <div class="admin-container">
+            <div class="nav">
+                <div class="nav-title">ADMIN</div>
+                <div class="burger-wrap">
+                    <button class="burger-btn" onclick="toggleBurgerMenu()" aria-label="Open menu">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <line x1="4" y1="6" x2="20" y2="6"></line>
+                            <line x1="4" y1="12" x2="20" y2="12"></line>
+                            <line x1="4" y1="18" x2="20" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div class="burger-menu" id="burgerMenu">
+                        <button class="burger-item" onclick="resetPassword()">Reset Password</button>
+                        <div class="burger-divider"></div>
+                        <button class="burger-item danger" onclick="window.location.reload()">Logout</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="monitor-header">
+                <h1>ADMIN LIVE MONITOR</h1>
+                <p>Real-time PC session tracking</p>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('all')" id="tabAll">All PCs</button>
+                <button class="tab" onclick="switchTab('css12')" id="tabCss12">
+                    <span class="dot" style="background:#06b6d4;display:inline-block;margin-right:6px;"></span>
+                    12 CSS
+                </button>
+            </div>
+
+            <div id="allPcsSection">
+                <div class="section-header">
+                    <h2 class="section-title">ALL PC SESSIONS</h2>
+                    <span class="section-badge" id="allCount">0 Active</span>
+                </div>
+                <div class="grid" id="monitorGrid"></div>
+            </div>
+
+            <div id="css12Section" style="display:none; margin-top: 32px;">
+                <div class="section-header">
+                    <h2 class="section-title">12 CSS SECTION MONITOR</h2>
+                    <span class="section-badge" id="css12Count">0 Active</span>
+                </div>
+                <div class="grid" id="css12Grid"></div>
+                <div id="css12Empty" style="display:none; text-align:center; padding: 48px 20px; color: rgba(255,255,255,0.4);">
+                    <p style="font-size: 16px; font-weight: 500; margin-bottom: 8px;">No active 12 CSS sessions</p>
+                    <p style="font-size: 13px;">All PCs in the 12 CSS section are currently vacant.</p>
+                </div>
+            </div>
         </div>
-
-        <section class="glass-card gate-card anim" id="gateCard">
-            <div class="gate-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="11" width="18" height="11" rx="2.5"></rect>
-                    <path d="M7 11V7.5a5 5 0 0 1 10 0V11"></path>
-                </svg>
-            </div>
-            <h2>Access Blocked</h2>
-            <p class="sub"></p>
-
-            <div class="scanner-wrap">
-                <div id="qr-reader"></div>
-                <div class="scan-frame">
-                    <span class="corner tl"></span><span class="corner tr"></span>
-                    <span class="corner bl"></span><span class="corner br"></span>
-                    <span class="scan-line"></span>
-                </div>
-            </div>
-            <p class="scan-status" id="scanStatus">Initializing camera…</p>
-        </section>
-
-        <section class="glass-card anim hidden" id="mainCard">
-            <div class="section-tag">12 CSS</div>
-            <div class="anim" id="authView">
-                <div class="input-group">
-                    <label for="lrn">Learner Reference Number</label>
-                    <input type="text" id="lrn" inputmode="numeric" placeholder="Enter your 12-digit LRN" maxlength="12" autocomplete="off">
-                </div>
-                <button class="btn" id="signInBtn">Sign In</button>
-            </div>
-        </section>
     </div>
 
     <script>
         const client = supabase.createClient("https://kofyybvvzzlcxemwlaqu.supabase.co", "sb_publishable_EXyi06rbFxY4OUV1XRyfjw_omMnlxFN");
-        const params = new URLSearchParams(window.location.search);
-        let targetPC = String(Math.min(parseInt(params.get('pc') || '1', 10) || 1, 10)).padStart(2, '0');
-        let qrAccessGranted = false;
-        let html5Qr = null;
-        let barcodeStream = null;
-        let rafId = null;
-        let durationTimer = null;
+        const TOTAL_PCS = 10;
+        let burgerOpen = false;
+        let realtimeChannel = null;
+        let debounceTimer = null;
 
-        document.getElementById('pcBadgeText').textContent = `PC ${targetPC}`;
-
-        function normalizeLRN(value) {
-            return String(value || '').replace(/\D/g, '').trim();
-        }
-
-        function extractPC(text) {
-            let pc = String(text || '').trim();
-            if (!pc) return '';
-            try {
-                const url = new URL(pc);
-                pc = url.searchParams.get('pc') || url.pathname.replace(/[^0-9]/g, '');
-            } catch (_) {
-                pc = pc.replace(/[^0-9]/g, '');
-            }
-            pc = pc.replace(/^0+/, '') || '1';
-            return String(Math.min(Math.max(parseInt(pc, 10) || 1, 1), 10)).padStart(2, '0');
-        }
-
-        function showPCBadge(pc) {
-            document.getElementById('pcBadgeText').textContent = `PC ${pc}`;
-            document.getElementById('pcBadge').classList.add('show');
-        }
-
-        function showView(el) {
-            el.classList.remove('hidden');
-            requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('show')));
-        }
-
-        function hideView(el, done) {
-            el.classList.remove('show');
-            setTimeout(() => {
-                el.classList.add('hidden');
-                if (done) done();
-            }, 420);
-        }
-
-        function setStatus(msg, color) {
-            const el = document.getElementById('scanStatus');
-            if (!el) return;
-            el.textContent = msg;
-            el.style.color = color || 'var(--text-dim)';
-        }
-
-        function stopScanner() {
-            if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-            if (barcodeStream) {
-                barcodeStream.getTracks().forEach(t => t.stop());
-                barcodeStream = null;
-            }
-            if (html5Qr) {
-                html5Qr.stop().catch(() => {}).then(() => html5Qr.clear().catch(() => {})).catch(() => {});
-                html5Qr = null;
-            }
-        }
-
-        async function startHtml5Qrcode() {
-            if (typeof Html5Qrcode === 'undefined') {
-                startBarcodeDetector();
+        async function verifyLogin() {
+            const pass = document.getElementById('adminPass').value.trim();
+            const { data, error } = await client.from('admin_config').select('password').eq('id', 1).single();
+            if (error || !data) {
+                Swal.fire('Error', 'Unable to load admin password', 'error');
                 return;
             }
-            try {
-                html5Qr = new Html5Qrcode('qr-reader', false);
-                await html5Qr.start(
-                    { facingMode: 'environment' },
-                    { fps: 12, qrbox: { width: 230, height: 230 }, aspectRatio: 1.0 },
-                    (decoded) => handleScan(decoded),
-                    () => {}
-                );
-                setStatus('Point the QR code at the frame');
-            } catch (_) {
-                startBarcodeDetector();
+            if (pass === data.password) {
+                document.getElementById('loginView').classList.remove('active');
+                document.getElementById('dashView').classList.add('active');
+                await fetchStatus();
+                startRealtime();
+            } else {
+                Swal.fire('Error', 'Invalid Password', 'error');
             }
         }
 
-        async function startBarcodeDetector() {
-            if (!('BarcodeDetector' in window) || !navigator.mediaDevices?.getUserMedia) {
-                setStatus('Camera not available on this device.');
-                return;
-            }
-            try {
-                const detector = new BarcodeDetector({ formats: ['qr_code'] });
-                const video = document.createElement('video');
-                video.setAttribute('playsinline', 'true');
-                video.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:22px;display:block;background:#000;';
-                const reader = document.getElementById('qr-reader');
-                reader.innerHTML = '';
-                reader.appendChild(video);
-                barcodeStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
-                });
-                video.srcObject = barcodeStream;
-                await video.play();
-                setStatus('Point the QR code at the frame');
-                const loop = async () => {
-                    if (qrAccessGranted) return;
-                    try {
-                        const codes = await detector.detect(video);
-                        if (codes && codes.length) {
-                            handleScan(codes[0].rawValue);
-                            return;
-                        }
-                    } catch (_) {}
-                    if (!qrAccessGranted) rafId = requestAnimationFrame(loop);
-                };
-                loop();
-            } catch (err) {
-                console.error(err);
-                setStatus('Camera access denied.');
-            }
+        function toggleBurgerMenu() {
+            burgerOpen = !burgerOpen;
+            const menu = document.getElementById('burgerMenu');
+            if (menu) menu.classList.toggle('show', burgerOpen);
         }
 
-        function handleScan(raw) {
-            if (qrAccessGranted) return;
-            const pc = extractPC(raw);
-            if (!pc) return;
-            targetPC = pc;
-            showPCBadge(targetPC);
-            qrAccessGranted = true;
-            setStatus('Access granted', 'var(--accent-2)');
-            stopScanner();
-            grantAccess();
-        }
-
-        function initScanner() {
-            if (!navigator.mediaDevices?.getUserMedia) {
-                setStatus('Camera not available on this device.');
-                return;
+        document.addEventListener('click', (e) => {
+            const wrap = document.querySelector('.burger-wrap');
+            const menu = document.getElementById('burgerMenu');
+            if (wrap && menu && !wrap.contains(e.target)) {
+                burgerOpen = false;
+                menu.classList.remove('show');
             }
-            startHtml5Qrcode();
+        });
+
+        function formatTime(iso) {
+            if (!iso) return '--';
+            const d = new Date(iso);
+            return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
         }
 
-        function grantAccess() {
-            const gate = document.getElementById('gateCard');
-            const main = document.getElementById('mainCard');
-            const auth = document.getElementById('authView');
-            hideView(gate, () => {
-                showView(main);
-                showView(auth);
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text || '';
+            return div.innerHTML;
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(tab === 'all' ? 'tabAll' : 'tabCss12').classList.add('active');
+            document.getElementById('allPcsSection').style.display = tab === 'all' ? 'block' : 'none';
+            document.getElementById('css12Section').style.display = tab === 'css12' ? 'block' : 'none';
+        }
+
+        function createCard(s) {
+            const isActive = !!s.student_id;
+            let timeHtml = '';
+            if (isActive) {
+                timeHtml = `<p class="time-info">Time In: ${formatTime(s.time_in)}</p><p class="duration" data-time-in="${escapeHtml(String(s.time_in || ''))}">Duration: 00h 00m 00s</p>`;
+            } else if (s.time_out) {
+                timeHtml = `<p class="time-info">Time Out: ${formatTime(s.time_out)}</p>`;
+            }
+
+            const card = document.createElement('div');
+            card.className = 'card' + (isActive ? ' active-student' : ' vacant');
+            card.setAttribute('data-pc', s.pc_number);
+            card.setAttribute('data-active', String(isActive));
+            card.innerHTML = `<h3>PC-${s.pc_number}</h3><p class="student-name">${isActive ? escapeHtml(String(s.student_name)) : 'Vacant'}</p>${timeHtml}${isActive ? `<div class="session-actions"><button class="btn-session" onclick="endSession('${s.pc_number}', '${escapeHtml(String(s.student_name || ''))}')">End Session</button></div>` : ''}`;
+            return card;
+        }
+
+        async function endSession(pc, name) {
+            const result = await Swal.fire({
+                title: 'End Session?',
+                text: `Terminate ${name}'s session on PC-${pc}?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'End Session',
+                confirmButtonColor: '#ef4444'
             });
-            document.getElementById('pageTitle').textContent = 'Student Terminal';
-            document.getElementById('pageSubtitle').textContent = 'Enter your credentials to begin a session';
-            setTimeout(() => document.getElementById('lrn').focus(), 600);
+            if (!result.isConfirmed) return;
+            const { error } = await client.from('active_sessions').update({
+                student_id: null,
+                student_name: null,
+                time_in: null,
+                time_out: new Date().toISOString()
+            }).eq('pc_number', pc);
+            if (error) {
+                Swal.fire('Error', 'Failed to end session', 'error');
+            }
         }
 
-        function startDurationTimer(startIso) {
-            if (durationTimer) clearInterval(durationTimer);
-            const tick = () => {
-                const el = document.getElementById('dashDuration');
-                if (!el) return;
-                const diff = Date.now() - new Date(startIso).getTime();
-                const h = String(Math.floor(diff / 3600000)).padStart(2, '0');
-                const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
-                const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
-                el.textContent = `${h}:${m}:${s}`;
-            };
-            tick();
-            durationTimer = setInterval(tick, 1000);
+        function isCss12Student(session) {
+            if (!session.student_name) return false;
+            const name = String(session.student_name).toLowerCase();
+            return name.includes('css') || name.includes('12');
         }
 
-        async function processAuth() {
-            const lrn = normalizeLRN(document.getElementById('lrn').value);
-            document.getElementById('lrn').value = lrn;
+        async function fetchStatus() {
+            const { data, error } = await client.from('active_sessions').select('*').order('pc_number', { ascending: true });
+            if (error) return;
+            const sessions = data || [];
+            const allGrid = document.getElementById('monitorGrid');
+            const css12Grid = document.getElementById('css12Grid');
+            const css12Empty = document.getElementById('css12Empty');
+            if (!allGrid || !css12Grid || !css12Empty) return;
 
-            if (lrn.length !== 12) {
-                Swal.fire({ icon: 'warning', title: 'Oops!', text: 'Please enter a valid 12-digit LRN.', confirmButtonColor: '#0a84ff' });
-                return;
+            allGrid.innerHTML = '';
+            css12Grid.innerHTML = '';
+
+            let activeCount = 0;
+            let css12ActiveCount = 0;
+
+            for (let i = 1; i <= TOTAL_PCS; i++) {
+                const session = sessions.find(s => Number(s.pc_number) === i) || { pc_number: i, student_id: null, student_name: null, time_in: null, time_out: null };
+                const isActive = !!session.student_id;
+                if (isActive) activeCount++;
+                if (isActive && isCss12Student(session)) css12ActiveCount++;
+                allGrid.appendChild(createCard(session));
+                css12Grid.appendChild(createCard(session));
             }
 
-            const btn = document.getElementById('signInBtn');
-            btn.disabled = true;
+            document.getElementById('allCount').textContent = `${activeCount} Active`;
+            document.getElementById('css12Count').textContent = `${css12ActiveCount} Active`;
+            css12Empty.style.display = css12ActiveCount === 0 ? 'block' : 'none';
+            startDurationTicker();
+        }
 
-            try {
-                const { data: student, error } = await client
-                    .from('student_roster')
-                    .select('student_name, lrn')
-                    .eq('lrn', lrn)
-                    .maybeSingle();
+        let durationTickerStarted = false;
+        function startDurationTicker() {
+            if (durationTickerStarted) return;
+            durationTickerStarted = true;
+            setInterval(() => {
+                document.querySelectorAll('.card[data-active="true"] .duration').forEach(el => {
+                    const startIso = el.getAttribute('data-time-in');
+                    if (!startIso) return;
+                    const diff = Date.now() - new Date(startIso).getTime();
+                    const h = String(Math.floor(diff / 3600000)).padStart(2, '0');
+                    const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+                    const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+                    el.textContent = `Duration: ${h}h ${m}m ${s}s`;
+                });
+            }, 1000);
+        }
 
-                if (error) throw error;
+        function startRealtime() {
+            if (realtimeChannel) return;
+            realtimeChannel = client
+                .channel('active_sessions_realtime')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'active_sessions' }, () => {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(fetchStatus, 100);
+                })
+                .subscribe();
+        }
 
-                if (!student) {
-                    Swal.fire({ icon: 'error', title: 'Not Found', text: 'This LRN is not registered.', confirmButtonColor: '#0a84ff' });
-                    return;
-                }
+        async function toggleLoginPassword() {
+            const input = document.getElementById('adminPass');
+            const btn = document.querySelector('#loginView .password-toggle');
+            if (!input || !btn) return;
+            const eyeOpen = btn.querySelector('.eye-open');
+            const eyeClosed = btn.querySelector('.eye-closed');
+            if (input.type === 'password') {
+                input.type = 'text';
+                eyeOpen.classList.add('hidden');
+                eyeClosed.classList.remove('hidden');
+            } else {
+                input.type = 'password';
+                eyeOpen.classList.remove('hidden');
+                eyeClosed.classList.add('hidden');
+            }
+        }
 
-                const now = new Date();
-                const { error: sessionError } = await client
-                    .from('active_sessions')
-                    .upsert([{
-                        pc_number: Number(targetPC),
-                        student_id: lrn,
-                        student_name: `${student.student_name} - 12 CSS`,
-                        time_in: now.toISOString(),
-                        time_out: null
-                    }], { onConflict: 'pc_number' });
-
-                if (sessionError) throw sessionError;
-
-                document.getElementById('pageTitle').textContent = 'Session Active';
-                document.getElementById('pageSubtitle').textContent = 'You are signed in to this workstation';
-
-                document.getElementById('mainCard').innerHTML = `
-                    <div class="section-tag">12 CSS</div>
-                    <div class="session-status"><span class="pulse"></span>Session Active</div>
-                    <div class="info-grid">
-                        <div class="info-item full">
-                            <label>Student</label>
-                            <div class="value" id="dashName">${student.student_name} - 12 CSS</div>
-                        </div>
-                        <div class="info-item">
-                            <label>Time In</label>
-                            <div class="value" id="dashTime">${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                        </div>
-                        <div class="info-item">
-                            <label>Duration</label>
-                            <div class="value highlight" id="dashDuration">00:00:00</div>
-                        </div>
+        async function resetPassword() {
+            const result = await Swal.fire({
+                title: 'Reset Password',
+                html: `
+                    <div style="text-align:left; color: rgba(255,255,255,0.72); font-size: 13px; margin-bottom: 14px; line-height: 1.5;">
+                        Create a new admin password for secure dashboard access.
                     </div>
-                `;
-
-                startDurationTimer(now.toISOString());
-            } catch (e) {
-                console.error(e);
-                Swal.fire({ icon: 'error', title: 'Connection Error', text: 'Could not reach the server. Check your connection.', confirmButtonColor: '#0a84ff' });
-            } finally {
-                btn.disabled = false;
+                    <div class="swal2-password-wrapper">
+                        <input type="password" id="swalNewPass" class="input-field" placeholder="New password" style="width: 100%; margin-top: 8px;">
+                        <button class="password-toggle" onclick="toggleSwalPassword()" type="button" aria-label="Toggle password visibility" style="position: absolute; right: 10px; top: 60%; transform: translateY(-50%);">
+                            <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <svg class="eye-closed hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.9 9.9 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                        </button>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Update Password',
+                confirmButtonColor: '#0a84ff',
+                background: '#0b0b0f',
+                color: '#fff',
+                backdrop: 'rgba(0, 0, 0, 0.82)'
+            });
+            if (result.isConfirmed && result.value) {
+                const { error } = await client.from('admin_config').update({ password: result.value }).eq('id', 1);
+                if (error) {
+                    Swal.fire('Error', 'Failed to update password', 'error');
+                } else {
+                    Swal.fire({ icon: 'success', title: 'Password Updated', text: 'Admin password has been changed successfully.', background: '#0b0b0f', color: '#fff', confirmButtonColor: '#0a84ff' });
+                }
             }
         }
 
-        document.getElementById('signInBtn').addEventListener('click', processAuth);
-        document.getElementById('lrn').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') processAuth();
-        });
+        function toggleSwalPassword() {
+            const input = document.getElementById('swalNewPass');
+            const btn = document.querySelector('.swal2-password-wrapper .password-toggle');
+            if (!input || !btn) return;
+            const eyeOpen = btn.querySelector('.eye-open');
+            const eyeClosed = btn.querySelector('.eye-closed');
+            if (input.type === 'password') {
+                input.type = 'text';
+                eyeOpen.classList.add('hidden');
+                eyeClosed.classList.remove('hidden');
+            } else {
+                input.type = 'password';
+                eyeOpen.classList.remove('hidden');
+                eyeClosed.classList.add('hidden');
+            }
+        }
 
-        window.addEventListener('load', () => {
-            initScanner();
-            setTimeout(() => {
-                document.getElementById('splash').classList.add('hide');
-                showView(document.getElementById('gateCard'));
-            }, 1500);
-        });
-
-        window.addEventListener('pagehide', stopScanner);
+        window.addEventListener('load', fetchStatus);
+        client.channel('active_sessions')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'active_sessions' }, () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(fetchStatus, 100);
+            })
+            .subscribe();
     </script>
 </body>
 </html>
