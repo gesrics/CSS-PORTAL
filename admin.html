@@ -208,6 +208,10 @@
         }
         .hidden { display: none !important; }
 
+        /* Ensure eye icons are visible */
+        .password-toggle svg { width: 22px; height: 22px; }
+        #swalNewPass + .password-toggle { pointer-events: auto; }
+
         .monitor-header { text-align: center; margin-bottom: 40px; }
         .monitor-header h1 {
             font-size: 36px; font-weight: 700; letter-spacing: -0.02em;
@@ -356,6 +360,12 @@
         }
     }
 
+    function logoutToLoginView() {
+        document.getElementById('dashView').classList.remove('active');
+        document.getElementById('loginView').classList.add('active');
+        document.getElementById('adminPass').value = '';
+    }
+
     function toggleBurgerMenu() {
         burgerOpen = !burgerOpen;
         const menu = document.getElementById('burgerMenu');
@@ -425,7 +435,7 @@
         const timeIn = formatTime(s.time_in);
         const timeOut = formatTime(s.time_out);
 
-        const showTimeIn = active; // hide time in after end
+        const showTimeIn = active;
         const showDuration = active;
 
         const timeBlocks = `
@@ -544,11 +554,12 @@
 
     function toggleSwalPassword() {
         const input = document.getElementById('swalNewPass');
-        const btn = document.querySelector('.swal2-container .swal2-password-wrapper .password-toggle');
-        if (!input || !btn) return;
+        if (!input) return;
 
-        const eyeOpen = btn.querySelector('.eye-open');
-        const eyeClosed = btn.querySelector('.eye-closed');
+        const modal = document.querySelector('.swal2-container .swal2-popup');
+        const btn = modal ? modal.querySelector('button.password-toggle[onclick="toggleSwalPassword()"]') : null;
+        const eyeOpen = btn ? btn.querySelector('.eye-open') : null;
+        const eyeClosed = btn ? btn.querySelector('.eye-closed') : null;
 
         const isPassword = input.type === 'password';
         input.type = isPassword ? 'text' : 'password';
@@ -564,42 +575,99 @@
             title: 'Reset Password',
             html: `
                 <div style="text-align:left; color: rgba(255,255,255,0.72); font-size: 13px; margin-bottom: 14px; line-height: 1.5;">
-                    Create a new admin password for secure dashboard access.
+                    Choose a new admin password. After updating, you’ll be logged out to use the new one.
                 </div>
-                <div class="swal2-password-wrapper" style="position:relative;">
-                    <input type="password" id="swalNewPass" class="input-field" placeholder="New password" style="width: 100%; margin-top: 8px;">
-                    <button class="password-toggle" onclick="toggleSwalPassword()" type="button" aria-label="Toggle password visibility"
-                        style="position: absolute; right: 10px; top: 60%; transform: translateY(-50%);">
-                        <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                            <circle cx="12" cy="12" r="3"/>
-                        </svg>
-                        <svg class="eye-closed hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.9 9.9 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                            <line x1="1" y1="1" x2="23" y2="23"/>
-                        </svg>
-                    </button>
+
+                <!-- Professional + Facebook-style -->
+                <div style="
+                    padding: 14px 14px;
+                    border-radius: 16px;
+                    background: rgba(59, 130, 246, 0.10);
+                    border: 1px solid rgba(59, 130, 246, 0.22);
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+                ">
+                    <label style="display:block; font-size: 12px; font-weight: 700; letter-spacing: 0.02em; color: rgba(255,255,255,0.75); margin-bottom: 10px;">
+                        New password
+                    </label>
+
+                    <div class="swal2-password-wrapper" style="position:relative;">
+                        <input
+                            type="password"
+                            id="swalNewPass"
+                            class="input-field"
+                            placeholder="Enter new password"
+                            style="width: 100%; margin-top: 0; padding-right: 50px;"
+                            autocomplete="new-password"
+                        >
+
+                        <button
+                            class="password-toggle"
+                            onclick="toggleSwalPassword()"
+                            type="button"
+                            aria-label="Toggle password visibility"
+                            style="position:absolute; right: 10px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.75);"
+                        >
+                            <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            <svg class="eye-closed hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.9 9.9 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                                <line x1="1" y1="1" x2="23" y2="23"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div style="margin-top:10px; font-size: 12px; color: rgba(255,255,255,0.55);">
+                        Tip: Use at least 8 characters.
+                    </div>
                 </div>
             `,
             showCancelButton: true,
             confirmButtonText: 'Update Password',
-            confirmButtonColor: '#0a84ff',
+            confirmButtonColor: '#1877F2',
+            cancelButtonColor: 'rgba(255,255,255,0.22)',
             background: '#0b0b0f',
             color: '#fff',
-            backdrop: 'rgba(0, 0, 0, 0.82)'
+            backdrop: 'rgba(0, 0, 0, 0.82)',
+            didOpen: () => {
+                // ensure initial state icons are correct/visible
+                const input = document.getElementById('swalNewPass');
+                const modal = document.querySelector('.swal2-container .swal2-popup');
+                const btn = modal ? modal.querySelector('button.password-toggle[onclick="toggleSwalPassword()"]') : null;
+                const eyeOpen = btn ? btn.querySelector('.eye-open') : null;
+                const eyeClosed = btn ? btn.querySelector('.eye-closed') : null;
+                if (input && eyeOpen && eyeClosed) {
+                    input.type = 'password';
+                    eyeOpen.classList.remove('hidden');
+                    eyeClosed.classList.add('hidden');
+                }
+            }
         });
 
-        if (result.isConfirmed && result.value) {
-            const { error } = await client.from('admin_config').update({ password: result.value }).eq('id', 1);
-            if (error) Swal.fire('Error', 'Failed to update password', 'error');
-            else Swal.fire({
+        if (result.isConfirmed) {
+            const newPass = (document.getElementById('swalNewPass')?.value || '').trim();
+            if (!newPass) {
+                Swal.fire('Error', 'Password cannot be empty', 'error');
+                return;
+            }
+
+            const { error } = await client.from('admin_config').update({ password: newPass }).eq('id', 1);
+            if (error) {
+                Swal.fire('Error', 'Failed to update password', 'error');
+                return;
+            }
+
+            await Swal.fire({
                 icon: 'success',
                 title: 'Password Updated',
-                text: 'Admin password has been changed successfully.',
+                text: 'You will be logged out. Please log in again using the new password.',
                 background: '#0b0b0f',
                 color: '#fff',
-                confirmButtonColor: '#0a84ff'
+                confirmButtonColor: '#1877F2'
             });
+
+            logoutToLoginView();
         }
     }
 
