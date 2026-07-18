@@ -37,10 +37,12 @@
             opacity: 0.03;
             mix-blend-mode: overlay;
         }
+
         .view { display: none; opacity: 0; transform: translateY(16px); transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
         .view.active { display: block; opacity: 1; transform: translateY(0); }
         .admin-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
         .login-wrapper { min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+
         .glass-card {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(40px) saturate(180%);
@@ -169,7 +171,6 @@
             font-weight: 700;
             cursor: pointer;
         }
-
         .btn-session:disabled { opacity: 0.55; cursor: not-allowed; }
 
         .btn {
@@ -201,11 +202,10 @@
         .password-wrapper { position: relative; }
         .password-toggle {
             position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-            background: none; border: none; color: rgba(255, 255, 255, 0.5);
+            background: none; border: none; color: rgba(255,255,255,0.5);
             cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center;
             border-radius: 8px;
         }
-
         .hidden { display: none !important; }
 
         .monitor-header { text-align: center; margin-bottom: 40px; }
@@ -254,6 +254,7 @@
     <div class="login-wrapper">
         <div class="glass-card">
             <h2>Admin Access</h2>
+
             <div class="input-group">
                 <div class="password-wrapper">
                     <input type="password" id="adminPass" class="input-field" placeholder="Enter Password">
@@ -269,6 +270,7 @@
                     </button>
                 </div>
             </div>
+
             <button class="btn" onclick="verifyLogin()">LOG IN</button>
         </div>
     </div>
@@ -377,14 +379,12 @@
         const eyeOpen = btn.querySelector('.eye-open');
         const eyeClosed = btn.querySelector('.eye-closed');
 
-        if (input.type === 'password') {
-            input.type = 'text';
-            eyeOpen.classList.add('hidden');
-            eyeClosed.classList.remove('hidden');
-        } else {
-            input.type = 'password';
-            eyeOpen.classList.remove('hidden');
-            eyeClosed.classList.add('hidden');
+        const isPassword = input.type === 'password';
+        input.type = isPassword ? 'text' : 'password';
+
+        if (eyeOpen && eyeClosed) {
+            eyeOpen.classList.toggle('hidden', !isPassword);
+            eyeClosed.classList.toggle('hidden', isPassword);
         }
     }
 
@@ -480,7 +480,7 @@
     function startDurationTicker() {
         if (window.__adminDurationTicker) return;
         window.__adminDurationTicker = setInterval(() => {
-            document.querySelectorAll('.card[data-active="true"] .duration').forEach(el => updateDurationForCard(el));
+            document.querySelectorAll('.card[data-active="true"] .duration').forEach(updateDurationForCard);
         }, 1000);
     }
 
@@ -528,13 +528,10 @@
             };
 
             const active = isActiveSession(session);
-
             if (active) activeCount++;
             if (active && isCss12Student(session)) css12ActiveCount++;
 
-            // All PCs: NO End Session button
             allGrid.appendChild(createCard(session, false));
-            // 12 CSS: End Session button ONLY here
             css12Grid.appendChild(createCard(session, true));
         }
 
@@ -545,15 +542,21 @@
         startDurationTicker();
     }
 
-    function startRealtime() {
-        if (realtimeChannel) return;
-        realtimeChannel = client
-            .channel('active_sessions_realtime')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'active_sessions' }, () => {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(fetchStatus, 100);
-            })
-            .subscribe();
+    function toggleSwalPassword() {
+        const input = document.getElementById('swalNewPass');
+        const btn = document.querySelector('.swal2-container .swal2-password-wrapper .password-toggle');
+        if (!input || !btn) return;
+
+        const eyeOpen = btn.querySelector('.eye-open');
+        const eyeClosed = btn.querySelector('.eye-closed');
+
+        const isPassword = input.type === 'password';
+        input.type = isPassword ? 'text' : 'password';
+
+        if (eyeOpen && eyeClosed) {
+            eyeOpen.classList.toggle('hidden', !isPassword);
+            eyeClosed.classList.toggle('hidden', isPassword);
+        }
     }
 
     async function resetPassword() {
@@ -563,7 +566,7 @@
                 <div style="text-align:left; color: rgba(255,255,255,0.72); font-size: 13px; margin-bottom: 14px; line-height: 1.5;">
                     Create a new admin password for secure dashboard access.
                 </div>
-                <div class="swal2-password-wrapper">
+                <div class="swal2-password-wrapper" style="position:relative;">
                     <input type="password" id="swalNewPass" class="input-field" placeholder="New password" style="width: 100%; margin-top: 8px;">
                     <button class="password-toggle" onclick="toggleSwalPassword()" type="button" aria-label="Toggle password visibility"
                         style="position: absolute; right: 10px; top: 60%; transform: translateY(-50%);">
@@ -589,27 +592,26 @@
         if (result.isConfirmed && result.value) {
             const { error } = await client.from('admin_config').update({ password: result.value }).eq('id', 1);
             if (error) Swal.fire('Error', 'Failed to update password', 'error');
-            else Swal.fire({ icon: 'success', title: 'Password Updated', text: 'Admin password has been changed successfully.', background: '#0b0b0f', color: '#fff', confirmButtonColor: '#0a84ff' });
+            else Swal.fire({
+                icon: 'success',
+                title: 'Password Updated',
+                text: 'Admin password has been changed successfully.',
+                background: '#0b0b0f',
+                color: '#fff',
+                confirmButtonColor: '#0a84ff'
+            });
         }
     }
 
-    function toggleSwalPassword() {
-        const input = document.getElementById('swalNewPass');
-        const btn = document.querySelector('.swal2-password-wrapper .password-toggle');
-        if (!input || !btn) return;
-
-        const eyeOpen = btn.querySelector('.eye-open');
-        const eyeClosed = btn.querySelector('.eye-closed');
-
-        if (input.type === 'password') {
-            input.type = 'text';
-            eyeOpen.classList.add('hidden');
-            eyeClosed.classList.remove('hidden');
-        } else {
-            input.type = 'password';
-            eyeOpen.classList.remove('hidden');
-            eyeClosed.classList.add('hidden');
-        }
+    function startRealtime() {
+        if (realtimeChannel) return;
+        realtimeChannel = client
+            .channel('active_sessions_realtime')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'active_sessions' }, () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(fetchStatus, 100);
+            })
+            .subscribe();
     }
 
     window.addEventListener('load', fetchStatus);
