@@ -54,6 +54,7 @@
             animation: fadeInUp 0.6s ease-out;
         }
         .glass-card h2 { margin-bottom: 24px; font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
+
         .nav {
             display: flex;
             justify-content: space-between;
@@ -114,7 +115,9 @@
         .burger-item:hover { background: rgba(255,255,255,0.06); transform: translateX(2px); }
         .burger-item.danger { color: #fca5a5; }
         .burger-divider { height: 1px; margin: 8px 6px; background: rgba(255,255,255,0.08); }
+
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+
         .card {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(40px) saturate(180%);
@@ -129,22 +132,59 @@
         }
         .card.active-student { border-left-color: #06b6d4; }
         .card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4); border-color: rgba(255, 255, 255, 0.15); }
-        .card h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; letter-spacing: -0.01em; color: rgba(255, 255, 255, 0.95); }
-        .card .student-name { font-size: 15px; color: rgba(255, 255, 255, 0.9); font-weight: 500; margin-bottom: 12px; }
-        .card .time-info { font-size: 13px; color: rgba(255, 255, 255, 0.5); margin-bottom: 4px; font-variant-numeric: tabular-nums; }
-        .card .duration { font-size: 13px; color: #06b6d4; font-weight: 600; margin-bottom: 16px; font-variant-numeric: tabular-nums; }
+
+        .card h3 { font-size: 18px; font-weight: 600; margin-bottom: 10px; letter-spacing: -0.01em; color: rgba(255, 255, 255, 0.95); }
+
+        .meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 14px 0 10px;
+        }
+        .meta .box {
+            background: rgba(0,0,0,0.22);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            padding: 12px;
+        }
+        .meta .k { font-size: 11px; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; margin-bottom: 6px; }
+        .meta .v { font-size: 13px; color: rgba(255,255,255,0.95); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+        .student-name { font-size: 15px; color: rgba(255, 255, 255, 0.92); font-weight: 600; margin-bottom: 8px; }
+        .lrn { font-size: 13px; color: rgba(255, 255, 255, 0.65); font-weight: 600; margin-bottom: 16px; font-variant-numeric: tabular-nums; }
+
+        .duration { font-size: 13px; color: #06b6d4; font-weight: 700; margin-bottom: 16px; font-variant-numeric: tabular-nums; }
+
         .card.vacant { opacity: 0.6; }
-        .card.vacant .student-name { color: rgba(255, 255, 255, 0.4); }
         .card.vacant:hover { opacity: 0.8; }
+        .btn-session {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
         .btn {
             padding: 10px 18px;
             background: linear-gradient(135deg, #3b82f6, #06b6d4);
-            border: none; border-radius: 12px;
-            color: #fff; font-size: 13px; font-weight: 600;
-            cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            white-space: nowrap; font-family: 'Inter', sans-serif; width: 100%;
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+            font-family: 'Inter', sans-serif;
+            width: 100%;
         }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3); }
+
         .input-group { margin-bottom: 20px; text-align: left; }
         .input-group label { display: block; font-size: 13px; font-weight: 500; color: rgba(255, 255, 255, 0.7); margin-bottom: 8px; }
         .input-field {
@@ -154,6 +194,7 @@
             border-radius: 14px; color: #fff; font-size: 15px; font-family: 'Inter', sans-serif;
             outline: none;
         }
+
         .password-wrapper { position: relative; }
         .password-toggle {
             position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
@@ -161,11 +202,9 @@
             cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center;
             border-radius: 8px;
         }
+
         .hidden { display: none !important; }
-        .swal2-password-wrapper { position: relative; }
-        .swal2-password-wrapper .input-field { padding-right: 50px; }
-        .swal2-password-wrapper .password-toggle { right: 10px; top: 60%; transform: translateY(-50%); }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
         .monitor-header { text-align: center; margin-bottom: 40px; }
         .monitor-header h1 {
             font-size: 36px; font-weight: 700; letter-spacing: -0.02em;
@@ -173,33 +212,31 @@
             -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 8px;
         }
         .monitor-header p { color: rgba(255, 255, 255, 0.5); font-size: 14px; font-weight: 500; }
+
         .tabs {
             display: flex; gap: 8px; margin-bottom: 24px;
             border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 0;
         }
         .tab {
             padding: 10px 18px; background: none; border: none; border-bottom: 2px solid transparent;
-            color: rgba(255, 255, 255, 0.5); font-size: 14px; font-weight: 500; cursor: pointer;
+            color: rgba(255,255,255,0.5); font-size: 14px; font-weight: 500; cursor: pointer;
             transition: all 0.2s ease; font-family: 'Inter', sans-serif; margin-bottom: -1px;
         }
         .tab.active { color: #fff; border-bottom-color: #06b6d4; }
+
         .section-header {
             display: flex; align-items: center; justify-content: space-between;
             margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.06);
         }
-        .section-title { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; color: rgba(255, 255, 255, 0.95); }
+        .section-title { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; color: rgba(255,255,255,0.95); }
         .section-badge {
             display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px;
             background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.3);
             border-radius: 20px; font-size: 12px; font-weight: 600; color: #06b6d4;
         }
-        .session-actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
-        .btn-session {
-            flex: 1; min-width: 140px; padding: 10px 14px; border-radius: 12px;
-            border: 1px solid rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.15);
-            color: #fca5a5; font-size: 12px; font-weight: 600; cursor: pointer;
-        }
-        .dot { width: 6px; height: 6px; border-radius: 50%; }
+
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
         .swal2-container.swal2-backdrop-show {
             background: rgba(0, 0, 0, 0.82) !important;
             backdrop-filter: blur(18px) saturate(140%) !important;
@@ -208,330 +245,378 @@
     </style>
 </head>
 <body>
-    <div class="background"></div>
+<div class="background"></div>
 
-    <div id="loginView" class="view active">
-        <div class="login-wrapper">
-            <div class="glass-card">
-                <h2>Admin Access</h2>
-                <div class="input-group">
-                    <div class="password-wrapper">
-                        <input type="password" id="adminPass" class="input-field" placeholder="Enter Password">
-                        <button class="password-toggle" onclick="toggleLoginPassword()" type="button" aria-label="Toggle password visibility">
-                            <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                            <svg class="eye-closed hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.9 9.9 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                        </button>
-                    </div>
-                </div>
-                <button class="btn" onclick="verifyLogin()">LOG IN</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="dashView" class="view">
-        <div class="admin-container">
-            <div class="nav">
-                <div class="nav-title">ADMIN</div>
-                <div class="burger-wrap">
-                    <button class="burger-btn" onclick="toggleBurgerMenu()" aria-label="Open menu">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                            <line x1="4" y1="6" x2="20" y2="6"></line>
-                            <line x1="4" y1="12" x2="20" y2="12"></line>
-                            <line x1="4" y1="18" x2="20" y2="18"></line>
+<div id="loginView" class="view active">
+    <div class="login-wrapper">
+        <div class="glass-card">
+            <h2>Admin Access</h2>
+            <div class="input-group">
+                <div class="password-wrapper">
+                    <input type="password" id="adminPass" class="input-field" placeholder="Enter Password">
+                    <button class="password-toggle" onclick="toggleLoginPassword()" type="button" aria-label="Toggle password visibility">
+                        <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        <svg class="eye-closed hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.9 9.9 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                            <line x1="1" y1="1" x2="23" y2="23"/>
                         </svg>
                     </button>
-                    <div class="burger-menu" id="burgerMenu">
-                        <button class="burger-item" onclick="resetPassword()">Reset Password</button>
-                        <div class="burger-divider"></div>
-                        <button class="burger-item danger" onclick="window.location.reload()">Logout</button>
-                    </div>
                 </div>
             </div>
+            <button class="btn" onclick="verifyLogin()">LOG IN</button>
+        </div>
+    </div>
+</div>
 
-            <div class="monitor-header">
-                <h1>ADMIN LIVE MONITOR</h1>
-                <p>Real-time PC session tracking</p>
-            </div>
-
-            <div class="tabs">
-                <button class="tab active" onclick="switchTab('all')" id="tabAll">All PCs</button>
-                <button class="tab" onclick="switchTab('css12')" id="tabCss12">
-                    <span class="dot" style="background:#06b6d4;display:inline-block;margin-right:6px;"></span>
-                    12 CSS
+<div id="dashView" class="view">
+    <div class="admin-container">
+        <div class="nav">
+            <div class="nav-title">ADMIN</div>
+            <div class="burger-wrap">
+                <button class="burger-btn" onclick="toggleBurgerMenu()" aria-label="Open menu">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <line x1="4" y1="6" x2="20" y2="6"></line>
+                        <line x1="4" y1="12" x2="20" y2="12"></line>
+                        <line x1="4" y1="18" x2="20" y2="18"></line>
+                    </svg>
                 </button>
-            </div>
-
-            <div id="allPcsSection">
-                <div class="section-header">
-                    <h2 class="section-title">ALL PC SESSIONS</h2>
-                    <span class="section-badge" id="allCount">0 Active</span>
-                </div>
-                <div class="grid" id="monitorGrid"></div>
-            </div>
-
-            <div id="css12Section" style="display:none; margin-top: 32px;">
-                <div class="section-header">
-                    <h2 class="section-title">12 CSS SECTION MONITOR</h2>
-                    <span class="section-badge" id="css12Count">0 Active</span>
-                </div>
-                <div class="grid" id="css12Grid"></div>
-                <div id="css12Empty" style="display:none; text-align:center; padding: 48px 20px; color: rgba(255,255,255,0.4);">
-                    <p style="font-size: 16px; font-weight: 500; margin-bottom: 8px;">No active 12 CSS sessions</p>
-                    <p style="font-size: 13px;">All PCs in the 12 CSS section are currently vacant.</p>
+                <div class="burger-menu" id="burgerMenu">
+                    <button class="burger-item" onclick="resetPassword()">Reset Password</button>
+                    <div class="burger-divider"></div>
+                    <button class="burger-item danger" onclick="window.location.reload()">Logout</button>
                 </div>
             </div>
         </div>
+
+        <div class="monitor-header">
+            <h1>ADMIN LIVE MONITOR</h1>
+            <p>Real-time PC session tracking</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('all')" id="tabAll">All PCs</button>
+            <button class="tab" onclick="switchTab('css12')" id="tabCss12">
+                <span class="dot" style="background:#06b6d4;display:inline-block;margin-right:6px;"></span>
+                12 CSS
+            </button>
+        </div>
+
+        <div id="allPcsSection">
+            <div class="section-header">
+                <h2 class="section-title">ALL PC SESSIONS</h2>
+                <span class="section-badge" id="allCount">0 Active</span>
+            </div>
+            <div class="grid" id="monitorGrid"></div>
+        </div>
+
+        <div id="css12Section" style="display:none; margin-top: 32px;">
+            <div class="section-header">
+                <h2 class="section-title">12 CSS SECTION MONITOR</h2>
+                <span class="section-badge" id="css12Count">0 Active</span>
+            </div>
+            <div class="grid" id="css12Grid"></div>
+            <div id="css12Empty" style="display:none; text-align:center; padding: 48px 20px; color: rgba(255,255,255,0.4);">
+                <p style="font-size: 16px; font-weight: 500; margin-bottom: 8px;">No active 12 CSS sessions</p>
+                <p style="font-size: 13px;">All PCs in the 12 CSS section are currently vacant.</p>
+            </div>
+        </div>
     </div>
+</div>
 
-    <script>
-        const client = supabase.createClient("https://kofyybvvzzlcxemwlaqu.supabase.co", "sb_publishable_EXyi06rbFxY4OUV1XRyfjw_omMnlxFN");
-        const TOTAL_PCS = 10;
-        let burgerOpen = false;
-        let realtimeChannel = null;
-        let debounceTimer = null;
-        let durationIntervals = {};
+<script>
+    const client = supabase.createClient("https://kofyybvvzzlcxemwlaqu.supabase.co", "sb_publishable_EXyi06rbFxY4OUV1XRyfjw_omMnlxFN");
+    const TOTAL_PCS = 10;
 
-        async function verifyLogin() {
-            const pass = document.getElementById('adminPass').value.trim();
-            const { data, error } = await client.from('admin_config').select('password').eq('id', 1).single();
-            if (error || !data) {
-                Swal.fire('Error', 'Unable to load admin password', 'error');
-                return;
-            }
-            if (pass === data.password) {
-                document.getElementById('loginView').classList.remove('active');
-                document.getElementById('dashView').classList.add('active');
-                await fetchStatus();
-                startRealtime();
-            } else {
-                Swal.fire('Error', 'Invalid Password', 'error');
-            }
+    let burgerOpen = false;
+    let realtimeChannel = null;
+    let debounceTimer = null;
+    let durationIntervals = {};
+
+    async function verifyLogin() {
+        const pass = document.getElementById('adminPass').value.trim();
+        const { data, error } = await client.from('admin_config').select('password').eq('id', 1).single();
+        if (error || !data) {
+            Swal.fire('Error', 'Unable to load admin password', 'error');
+            return;
         }
-
-        function toggleBurgerMenu() {
-            burgerOpen = !burgerOpen;
-            const menu = document.getElementById('burgerMenu');
-            if (menu) menu.classList.toggle('show', burgerOpen);
+        if (pass === data.password) {
+            document.getElementById('loginView').classList.remove('active');
+            document.getElementById('dashView').classList.add('active');
+            await fetchStatus();
+            startRealtime();
+        } else {
+            Swal.fire('Error', 'Invalid Password', 'error');
         }
+    }
 
-        document.addEventListener('click', (e) => {
-            const wrap = document.querySelector('.burger-wrap');
-            const menu = document.getElementById('burgerMenu');
-            if (wrap && menu && !wrap.contains(e.target)) {
-                burgerOpen = false;
-                menu.classList.remove('show');
-            }
+    function toggleBurgerMenu() {
+        burgerOpen = !burgerOpen;
+        const menu = document.getElementById('burgerMenu');
+        if (menu) menu.classList.toggle('show', burgerOpen);
+    }
+
+    document.addEventListener('click', (e) => {
+        const wrap = document.querySelector('.burger-wrap');
+        const menu = document.getElementById('burgerMenu');
+        if (wrap && menu && !wrap.contains(e.target)) {
+            burgerOpen = false;
+            menu.classList.remove('show');
+        }
+    });
+
+    function formatTime(iso) {
+        if (!iso) return '--';
+        const d = new Date(iso);
+        return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text || '';
+        return div.innerHTML;
+    }
+
+    function switchTab(tab) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(tab === 'all' ? 'tabAll' : 'tabCss12').classList.add('active');
+        document.getElementById('allPcsSection').style.display = tab === 'all' ? 'block' : 'none';
+        document.getElementById('css12Section').style.display = tab === 'css12' ? 'block' : 'none';
+    }
+
+    function isCss12Student(session) {
+        if (!session.student_name) return false;
+        const name = String(session.student_name).toLowerCase();
+        return name.includes('css') || name.includes('12');
+    }
+
+    function updateDurationForCard(el) {
+        const startIso = el.getAttribute('data-time-in');
+        if (!startIso) return;
+        const diff = Date.now() - new Date(startIso).getTime();
+        const h = String(Math.floor(diff / 3600000)).padStart(2, '0');
+        const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+        const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+        el.textContent = `Duration: ${h}h ${m}m ${s}s`;
+    }
+
+    function startDurationTicker() {
+        if (window.__adminDurationTicker) return;
+        window.__adminDurationTicker = setInterval(() => {
+            document.querySelectorAll('.card[data-active="true"] .duration').forEach(el => updateDurationForCard(el));
+        }, 1000);
+    }
+
+    function createCard(s) {
+        const isActive = !!s.student_id;
+        const displayName = s.student_name ? String(s.student_name) : 'Vacant';
+
+        const lrn = s.student_id ? String(s.student_id) : '--';
+        const timeIn = formatTime(s.time_in);
+        const timeOut = formatTime(s.time_out);
+
+        const card = document.createElement('div');
+        card.className = 'card' + (isActive ? ' active-student' : ' vacant');
+        card.setAttribute('data-pc', s.pc_number);
+        card.setAttribute('data-active', String(isActive));
+
+        const timeBlocks = `
+            <div class="meta">
+                <div class="box">
+                    <div class="k">Time In</div>
+                    <div class="v">${escapeHtml(timeIn)}</div>
+                </div>
+                <div class="box">
+                    <div class="k">Time Out</div>
+                    <div class="v">${escapeHtml(timeOut)}</div>
+                </div>
+            </div>
+        `;
+
+        const durationHtml = isActive
+            ? `<div class="duration" data-time-in="${escapeHtml(String(s.time_in || ''))}">Duration: 00h 00m 00s</div>`
+            : `<div class="duration" style="color: rgba(255,255,255,0.35);">Duration: --</div>`;
+
+        const endBtn = isActive
+            ? `<div style="margin-top:14px;"><button class="btn-session" onclick="endSession('${s.pc_number}')">End Session</button></div>`
+            : '';
+
+        card.innerHTML = `
+            <h3>PC-${s.pc_number}</h3>
+            <div class="student-name">${escapeHtml(displayName)}</div>
+            <div class="lrn">LRN: ${escapeHtml(lrn)}</div>
+            ${timeBlocks}
+            ${durationHtml}
+            ${endBtn}
+        `;
+
+        return card;
+    }
+
+    async function endSession(pc) {
+        const result = await Swal.fire({
+            title: 'End Session?',
+            text: `Terminate session on PC-${pc}?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'End Session',
+            confirmButtonColor: '#ef4444'
         });
+        if (!result.isConfirmed) return;
 
-        function formatTime(iso) {
-            if (!iso) return '--';
-            const d = new Date(iso);
-            return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-        }
+        const { error } = await client.from('active_sessions').update({
+            student_id: null,
+            student_name: null,
+            time_in: null,
+            time_out: new Date().toISOString()
+        }).eq('pc_number', pc);
 
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text || '';
-            return div.innerHTML;
-        }
+        if (error) Swal.fire('Error', 'Failed to end session', 'error');
+    }
 
-        function switchTab(tab) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.getElementById(tab === 'all' ? 'tabAll' : 'tabCss12').classList.add('active');
-            document.getElementById('allPcsSection').style.display = tab === 'all' ? 'block' : 'none';
-            document.getElementById('css12Section').style.display = tab === 'css12' ? 'block' : 'none';
-        }
+    async function fetchStatus() {
+        const { data, error } = await client.from('active_sessions').select('*').order('pc_number', { ascending: true });
+        if (error) return;
 
-        function createCard(s) {
-            const isActive = !!s.student_id;
-            let timeHtml = '';
-            if (isActive) {
-                timeHtml = `<p class="time-info">Time In: ${formatTime(s.time_in)}</p><p class="duration" data-time-in="${escapeHtml(String(s.time_in || ''))}">Duration: 00h 00m 00s</p>`;
-            } else if (s.time_out) {
-                timeHtml = `<p class="time-info">Time Out: ${formatTime(s.time_out)}</p>`;
-            }
+        const sessions = data || [];
+        const allGrid = document.getElementById('monitorGrid');
+        const css12Grid = document.getElementById('css12Grid');
+        const css12Empty = document.getElementById('css12Empty');
+        if (!allGrid || !css12Grid || !css12Empty) return;
 
-            const card = document.createElement('div');
-            card.className = 'card' + (isActive ? ' active-student' : ' vacant');
-            card.setAttribute('data-pc', s.pc_number);
-            card.setAttribute('data-active', String(isActive));
-            card.innerHTML = `<h3>PC-${s.pc_number}</h3><p class="student-name">${isActive ? escapeHtml(String(s.student_name)) : 'Vacant'}</p>${timeHtml}${isActive ? `<div class="session-actions"><button class="btn-session" onclick="endSession('${s.pc_number}', '${escapeHtml(String(s.student_name || ''))}')">End Session</button></div>` : ''}`;
-            return card;
-        }
+        allGrid.innerHTML = '';
+        css12Grid.innerHTML = '';
 
-        async function endSession(pc, name) {
-            const result = await Swal.fire({
-                title: 'End Session?',
-                text: `Terminate ${name}'s session on PC-${pc}?`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'End Session',
-                confirmButtonColor: '#ef4444'
-            });
-            if (!result.isConfirmed) return;
+        let activeCount = 0;
+        let css12ActiveCount = 0;
 
-            const { error } = await client.from('active_sessions').update({
+        for (let i = 1; i <= TOTAL_PCS; i++) {
+            const session = sessions.find(s => Number(s.pc_number) === i) || {
+                pc_number: i,
                 student_id: null,
                 student_name: null,
                 time_in: null,
-                time_out: new Date().toISOString()
-            }).eq('pc_number', pc);
+                time_out: null
+            };
 
-            if (error) {
-                Swal.fire('Error', 'Failed to end session', 'error');
-            }
+            const isActive = !!session.student_id;
+            if (isActive) activeCount++;
+            if (isActive && isCss12Student(session)) css12ActiveCount++;
+
+            // All
+            allGrid.appendChild(createCard(session));
+
+            // CSS12: show only css12-active; but when inactive/vacant show vacant cards too (so grid stays consistent).
+            // If you want to hide vacant cards instead, tell me.
+            css12Grid.appendChild(createCard(session));
         }
 
-        function isCss12Student(session) {
-            if (!session.student_name) return false;
-            const name = String(session.student_name).toLowerCase();
-            return name.includes('css') || name.includes('12');
-        }
+        document.getElementById('allCount').textContent = `${activeCount} Active`;
+        document.getElementById('css12Count').textContent = `${css12ActiveCount} Active`;
+        css12Empty.style.display = css12ActiveCount === 0 ? 'block' : 'none';
 
-        function stopDurationTimers() {
-            Object.values(durationIntervals).forEach(clearInterval);
-            durationIntervals = {};
-        }
+        startDurationTicker();
+    }
 
-        function updateDurationForCard(el) {
-            const startIso = el.getAttribute('data-time-in');
-            if (!startIso) return;
-            const diff = Date.now() - new Date(startIso).getTime();
-            const h = String(Math.floor(diff / 3600000)).padStart(2, '0');
-            const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
-            const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
-            el.textContent = `Duration: ${h}h ${m}m ${s}s`;
-        }
-
-        function startDurationTicker() {
-            document.querySelectorAll('.card[data-active="true"] .duration').forEach(el => {
-                updateDurationForCard(el);
-            });
-
-            if (window.__adminDurationTicker) return;
-            window.__adminDurationTicker = setInterval(() => {
-                document.querySelectorAll('.card[data-active="true"] .duration').forEach(el => {
-                    updateDurationForCard(el);
-                });
-            }, 1000);
-        }
-
-        async function fetchStatus() {
-            const { data, error } = await client.from('active_sessions').select('*').order('pc_number', { ascending: true });
-            if (error) return;
-
-            const sessions = data || [];
-            const allGrid = document.getElementById('monitorGrid');
-            const css12Grid = document.getElementById('css12Grid');
-            const css12Empty = document.getElementById('css12Empty');
-            if (!allGrid || !css12Grid || !css12Empty) return;
-
-            allGrid.innerHTML = '';
-            css12Grid.innerHTML = '';
-
-            let activeCount = 0;
-            let css12ActiveCount = 0;
-
-            for (let i = 1; i <= TOTAL_PCS; i++) {
-                const session = sessions.find(s => Number(s.pc_number) === i) || { pc_number: i, student_id: null, student_name: null, time_in: null, time_out: null };
-                const isActive = !!session.student_id;
-                if (isActive) activeCount++;
-                if (isActive && isCss12Student(session)) css12ActiveCount++;
-                allGrid.appendChild(createCard(session));
-                css12Grid.appendChild(createCard(session));
-            }
-
-            document.getElementById('allCount').textContent = `${activeCount} Active`;
-            document.getElementById('css12Count').textContent = `${css12ActiveCount} Active`;
-            css12Empty.style.display = css12ActiveCount === 0 ? 'block' : 'none';
-
-            startDurationTicker();
-        }
-
-        function startRealtime() {
-            if (realtimeChannel) return;
-            realtimeChannel = client
-                .channel('active_sessions_realtime')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'active_sessions' }, () => {
-                    clearTimeout(debounceTimer);
-                    debounceTimer = setTimeout(fetchStatus, 100);
-                })
-                .subscribe();
-        }
-
-        async function toggleLoginPassword() {
-            const input = document.getElementById('adminPass');
-            const btn = document.querySelector('#loginView .password-toggle');
-            if (!input || !btn) return;
-            const eyeOpen = btn.querySelector('.eye-open');
-            const eyeClosed = btn.querySelector('.eye-closed');
-            if (input.type === 'password') {
-                input.type = 'text';
-                eyeOpen.classList.add('hidden');
-                eyeClosed.classList.remove('hidden');
-            } else {
-                input.type = 'password';
-                eyeOpen.classList.remove('hidden');
-                eyeClosed.classList.add('hidden');
-            }
-        }
-
-        async function resetPassword() {
-            const result = await Swal.fire({
-                title: 'Reset Password',
-                html: `
-                    <div style="text-align:left; color: rgba(255,255,255,0.72); font-size: 13px; margin-bottom: 14px; line-height: 1.5;">
-                        Create a new admin password for secure dashboard access.
-                    </div>
-                    <div class="swal2-password-wrapper">
-                        <input type="password" id="swalNewPass" class="input-field" placeholder="New password" style="width: 100%; margin-top: 8px;">
-                        <button class="password-toggle" onclick="toggleSwalPassword()" type="button" aria-label="Toggle password visibility" style="position: absolute; right: 10px; top: 60%; transform: translateY(-50%);">
-                            <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                            <svg class="eye-closed hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.9 9.9 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                        </button>
-                    </div>
-                `,
-                showCancelButton: true,
-                confirmButtonText: 'Update Password',
-                confirmButtonColor: '#0a84ff',
-                background: '#0b0b0f',
-                color: '#fff',
-                backdrop: 'rgba(0, 0, 0, 0.82)'
-            });
-            if (result.isConfirmed && result.value) {
-                const { error } = await client.from('admin_config').update({ password: result.value }).eq('id', 1);
-                if (error) {
-                    Swal.fire('Error', 'Failed to update password', 'error');
-                } else {
-                    Swal.fire({ icon: 'success', title: 'Password Updated', text: 'Admin password has been changed successfully.', background: '#0b0b0f', color: '#fff', confirmButtonColor: '#0a84ff' });
-                }
-            }
-        }
-
-        function toggleSwalPassword() {
-            const input = document.getElementById('swalNewPass');
-            const btn = document.querySelector('.swal2-password-wrapper .password-toggle');
-            if (!input || !btn) return;
-            const eyeOpen = btn.querySelector('.eye-open');
-            const eyeClosed = btn.querySelector('.eye-closed');
-            if (input.type === 'password') {
-                input.type = 'text';
-                eyeOpen.classList.add('hidden');
-                eyeClosed.classList.remove('hidden');
-            } else {
-                input.type = 'password';
-                eyeOpen.classList.remove('hidden');
-                eyeClosed.classList.add('hidden');
-            }
-        }
-
-        window.addEventListener('load', fetchStatus);
-        client.channel('active_sessions')
+    function startRealtime() {
+        if (realtimeChannel) return;
+        realtimeChannel = client
+            .channel('active_sessions_realtime')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'active_sessions' }, () => {
                 clearTimeout(debounceTimer);
                 debounceTimer = setTimeout(fetchStatus, 100);
             })
             .subscribe();
-    </script>
+    }
+
+    async function toggleLoginPassword() {
+        const input = document.getElementById('adminPass');
+        const btn = document.querySelector('#loginView .password-toggle');
+        if (!input || !btn) return;
+
+        const eyeOpen = btn.querySelector('.eye-open');
+        const eyeClosed = btn.querySelector('.eye-closed');
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            eyeOpen.classList.add('hidden');
+            eyeClosed.classList.remove('hidden');
+        } else {
+            input.type = 'password';
+            eyeOpen.classList.remove('hidden');
+            eyeClosed.classList.add('hidden');
+        }
+    }
+
+    async function resetPassword() {
+        const result = await Swal.fire({
+            title: 'Reset Password',
+            html: `
+                <div style="text-align:left; color: rgba(255,255,255,0.72); font-size: 13px; margin-bottom: 14px; line-height: 1.5;">
+                    Create a new admin password for secure dashboard access.
+                </div>
+                <div class="swal2-password-wrapper">
+                    <input type="password" id="swalNewPass" class="input-field" placeholder="New password" style="width: 100%; margin-top: 8px;">
+                    <button class="password-toggle" onclick="toggleSwalPassword()" type="button" aria-label="Toggle password visibility"
+                        style="position: absolute; right: 10px; top: 60%; transform: translateY(-50%);">
+                        <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        <svg class="eye-closed hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.9 9.9 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                            <line x1="1" y1="1" x2="23" y2="23"/>
+                        </svg>
+                    </button>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Update Password',
+            confirmButtonColor: '#0a84ff',
+            background: '#0b0b0f',
+            color: '#fff',
+            backdrop: 'rgba(0, 0, 0, 0.82)'
+        });
+
+        if (result.isConfirmed && result.value) {
+            const { error } = await client.from('admin_config').update({ password: result.value }).eq('id', 1);
+            if (error) {
+                Swal.fire('Error', 'Failed to update password', 'error');
+            } else {
+                Swal.fire({ icon: 'success', title: 'Password Updated', text: 'Admin password has been changed successfully.', background: '#0b0b0f', color: '#fff', confirmButtonColor: '#0a84ff' });
+            }
+        }
+    }
+
+    function toggleSwalPassword() {
+        const input = document.getElementById('swalNewPass');
+        const btn = document.querySelector('.swal2-password-wrapper .password-toggle');
+        if (!input || !btn) return;
+
+        const eyeOpen = btn.querySelector('.eye-open');
+        const eyeClosed = btn.querySelector('.eye-closed');
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            eyeOpen.classList.add('hidden');
+            eyeClosed.classList.remove('hidden');
+        } else {
+            input.type = 'password';
+            eyeOpen.classList.remove('hidden');
+            eyeClosed.classList.add('hidden');
+        }
+    }
+
+    window.addEventListener('load', fetchStatus);
+
+    client.channel('active_sessions')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'active_sessions' }, () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(fetchStatus, 100);
+        })
+        .subscribe();
+</script>
 </body>
 </html>
