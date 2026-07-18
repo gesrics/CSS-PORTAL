@@ -479,11 +479,11 @@
             durationTimer = setInterval(tick, 1000);
         }
 
-        function css12DisplayName(name) {
-            const n = String(name || '').trim();
-            if (!n) return 'Unknown - 12 CSS';
-            const lower = n.toLowerCase();
-            return (lower.includes('12 css') || lower.includes('12 css')) ? n : `${n} - 12 CSS`;
+        function cleanStudentName(name) {
+            // Remove a trailing " - 12 CSS" (if it exists) and trim
+            return String(name || '')
+                .replace(/\s*-\s*12\s*css\s*$/i, '')
+                .trim();
         }
 
         function watchSession(lrn, pc) {
@@ -492,13 +492,11 @@
             const pcNum = Number(pc);
             sessionWatchTimer = setInterval(async () => {
                 try {
-                    const { data, error } = await client
+                    const { data } = await client
                         .from('active_sessions')
                         .select('student_id')
                         .eq('pc_number', pcNum)
                         .maybeSingle();
-
-                    if (error) return;
 
                     const ended = !data || !data.student_id || String(data.student_id) !== String(lrn);
                     if (!ended) return;
@@ -506,11 +504,8 @@
                     clearInterval(sessionWatchTimer);
                     sessionWatchTimer = null;
 
-                    // Remove notification popup; just reload back to gate
                     window.location.reload();
-                } catch (e) {
-                    // ignore
-                }
+                } catch (e) {}
             }, 3000);
         }
 
@@ -541,7 +536,7 @@
                 }
 
                 const now = new Date();
-                const displayName = css12DisplayName(student.student_name);
+                const displayName = cleanStudentName(student.student_name);
 
                 const { error: sessionError } = await client
                     .from('active_sessions')
