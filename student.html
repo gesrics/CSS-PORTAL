@@ -24,7 +24,6 @@
             --accent: #0a84ff;
             --accent-2: #06b6d4;
             --ease: cubic-bezier(0.4, 0, 0.2, 1);
-            --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
         }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         html, body { height: 100%; }
@@ -121,7 +120,6 @@
             animation: pulse 2.4s var(--ease) infinite;
         }
         @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
-
         .terminal-header h1 {
             font-size: 30px;
             font-weight: 700;
@@ -351,7 +349,7 @@
         const client = supabase.createClient("https://kofyybvvzzlcxemwlaqu.supabase.co", "sb_publishable_EXyi06rbFxY4OUV1XRyfjw_omMnlxFN");
         const params = new URLSearchParams(window.location.search);
         let targetPC = String(Math.min(parseInt(params.get('pc') || '1', 10) || 1, 10)).padStart(2, '0');
-        let qrAccessGranted = false, html5Qr = null, barcodeStream = null, rafId = null, durationTimer = null;
+        let qrAccessGranted = false, html5Qr = null, barcodeStream = null, rafId = null, durationTimer = null, sessionWatchTimer = null;
 
         document.getElementById('pcBadgeText').textContent = `PC ${targetPC}`;
 
@@ -475,6 +473,20 @@
             durationTimer = setInterval(tick, 1000);
         }
 
+        function watchSession(lrn, pc) {
+            if (sessionWatchTimer) clearInterval(sessionWatchTimer);
+            sessionWatchTimer = setInterval(async () => {
+                const { data, error } = await client.from('active_sessions').select('student_id').eq('pc_number', Number(pc)).maybeSingle();
+                if (error) return;
+                if (!data || !data.student_id || String(data.student_id) !== String(lrn)) {
+                    clearInterval(sessionWatchTimer);
+                    sessionWatchTimer = null;
+                    Swal.fire({ icon: 'info', title: 'Session Ended', text: 'Your session has been ended by the admin.', confirmButtonColor: '#0a84ff' })
+                        .then(() => window.location.reload());
+                }
+            }, 3000);
+        }
+
         async function processAuth() {
             const lrn = normalizeLRN(document.getElementById('lrn').value);
             document.getElementById('lrn').value = lrn;
@@ -528,7 +540,9 @@
                         </div>
                     </div>
                 `;
+
                 startDurationTimer(now.toISOString());
+                watchSession(lrn, targetPC);
             } catch (e) {
                 console.error(e);
                 Swal.fire({ icon: 'error', title: 'Connection Error', text: 'Could not reach the server. Check your connection.', confirmButtonColor: '#0a84ff' });
@@ -548,7 +562,11 @@
             }, 1500);
         });
 
-        window.addEventListener('pagehide', stopScanner);
+        window.addEventListener('pagehide', () => {
+            stopScanner();
+            if (sessionWatchTimer) clearInterval(sessionWatchTimer);
+            if (durationTimer) clearInterval(durationTimer);
+        });
     </script>
 </body>
 </html>
