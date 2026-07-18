@@ -307,6 +307,22 @@
             font-family: 'SF Mono', ui-monospace, 'Inter', monospace; letter-spacing: 0.02em;
         }
 
+        .section-tag {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            padding: 7px 14px;
+            border-radius: 999px;
+            background: rgba(6, 182, 212, 0.12);
+            border: 1px solid rgba(6, 182, 212, 0.22);
+            color: var(--accent-2);
+            font-size: 11.5px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
         .loader {
             position: fixed; inset: 0; z-index: 55;
             display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
@@ -378,6 +394,8 @@
         </section>
 
         <section class="glass-card anim hidden" id="mainCard">
+            <div class="section-tag">12 CSS</div>
+
             <div class="anim" id="authView">
                 <div class="input-group">
                     <label for="lrn">Learner Reference Number</label>
