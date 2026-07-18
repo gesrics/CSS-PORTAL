@@ -49,9 +49,7 @@
                 radial-gradient(55% 45% at 82% 18%, rgba(6, 182, 212, 0.16), transparent 60%),
                 radial-gradient(70% 60% at 50% 50%, rgba(120, 80, 220, 0.08), transparent 70%);
             z-index: 0;
-            animation: drift 18s ease-in-out infinite alternate;
         }
-        @keyframes drift { 0% { transform: scale(1) translate(0, 0); } 100% { transform: scale(1.08) translate(-1.5%, 1.5%); } }
         .background::after {
             content: '';
             position: absolute;
@@ -79,11 +77,9 @@
             background: linear-gradient(145deg, #0a84ff, #06b6d4);
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 20px 60px rgba(10, 132, 255, 0.35), inset 0 1px 0 rgba(255,255,255,0.4);
-            animation: logoIn 0.9s var(--ease-out) both;
         }
-        @keyframes logoIn { from { opacity: 0; transform: scale(0.8) translateY(10px); } to { opacity: 1; transform: none; } }
         .splash-logo svg { width: 46px; height: 46px; }
-        .splash-title { font-size: 19px; font-weight: 600; letter-spacing: -0.01em; color: var(--text); opacity: 0.9; animation: fadeUp 0.8s 0.15s var(--ease-out) both; }
+        .splash-title { font-size: 19px; font-weight: 600; letter-spacing: -0.01em; color: var(--text); opacity: 0.9; }
         .splash-spinner {
             width: 26px; height: 26px;
             border-radius: 50%;
@@ -92,15 +88,12 @@
             animation: spin 0.9s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
         .terminal {
             position: relative;
             z-index: 1;
             width: 100%;
             max-width: 430px;
             padding: 22px 18px;
-            padding-top: max(22px, env(safe-area-inset-top));
-            padding-bottom: max(22px, env(safe-area-inset-bottom));
         }
         .terminal-header { text-align: center; margin-bottom: 26px; }
         .pc-badge {
@@ -109,7 +102,7 @@
             border: 1px solid var(--border);
             border-radius: 100px;
             padding: 7px 16px;
-            font-size: 12.5px; font-weight: 500; letter-spacing: 0.01em;
+            font-size: 12.5px; font-weight: 500;
             color: var(--text-dim);
             margin-bottom: 20px;
             backdrop-filter: blur(20px) saturate(180%);
@@ -117,7 +110,7 @@
             opacity: 0;
             visibility: hidden;
             transform: translateY(8px);
-            transition: opacity 0.3s var(--ease), visibility 0.3s var(--ease), transform 0.3s var(--ease);
+            transition: all 0.3s var(--ease);
         }
         .pc-badge.show { opacity: 1; visibility: visible; transform: translateY(0); }
         .pc-badge .dot {
@@ -128,7 +121,7 @@
         }
         @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
         .terminal-header h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.1; }
-        .terminal-header p { margin-top: 7px; font-size: 14px; color: var(--text-dim); font-weight: 400; }
+        .terminal-header p { margin-top: 7px; font-size: 14px; color: var(--text-dim); }
         .anim {
             opacity: 0;
             transform: translateY(18px) scale(0.985);
@@ -206,12 +199,11 @@
         .scan-status {
             margin-top: 14px; font-size: 13px; font-weight: 500;
             color: var(--text-dim); min-height: 18px;
-            transition: color 0.3s var(--ease);
         }
         .input-group { margin-bottom: 18px; text-align: left; }
         .input-group label {
             display: block; font-size: 12.5px; font-weight: 500;
-            color: var(--text-dim); margin-bottom: 9px; letter-spacing: 0.02em;
+            color: var(--text-dim); margin-bottom: 9px;
         }
         .input-group input {
             width: 100%; padding: 16px 18px;
@@ -219,27 +211,22 @@
             border: 1px solid var(--border);
             border-radius: 15px;
             color: var(--text); font-size: 16px; font-family: inherit;
-            letter-spacing: 0.04em;
-            transition: border-color 0.3s var(--ease), box-shadow 0.3s var(--ease), background 0.3s var(--ease);
             outline: none;
         }
         .input-group input:focus {
             border-color: rgba(10, 132, 255, 0.55);
             box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.14);
-            background: rgba(0, 0, 0, 0.4);
         }
-        .input-group input::placeholder { color: var(--text-faint); letter-spacing: 0; }
         .btn {
             width: 100%; padding: 16px;
             background: linear-gradient(135deg, #0a84ff, #06b6d4);
             border: none; border-radius: 15px;
-            font-weight: 600; font-size: 15.5px; font-family: inherit; letter-spacing: -0.01em;
+            font-weight: 600; font-size: 15.5px; font-family: inherit;
             color: #fff; cursor: pointer;
-            transition: transform 0.25s var(--ease), box-shadow 0.35s var(--ease), filter 0.25s var(--ease);
+            transition: transform 0.25s var(--ease), box-shadow 0.35s var(--ease);
             box-shadow: 0 10px 30px rgba(10, 132, 255, 0.28);
         }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 14px 38px rgba(10, 132, 255, 0.4); filter: brightness(1.05); }
-        .btn:active { transform: translateY(0) scale(0.985); box-shadow: 0 6px 18px rgba(10, 132, 255, 0.3); }
+        .btn:hover { transform: translateY(-2px); }
         .section-tag {
             display: flex;
             align-items: center;
@@ -283,7 +270,7 @@
         .info-item .value { font-size: 15px; font-weight: 600; color: var(--text); }
         .info-item .value.highlight {
             color: var(--accent-2); font-variant-numeric: tabular-nums;
-            font-family: 'SF Mono', ui-monospace, 'Inter', monospace; letter-spacing: 0.02em;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         }
         @media (max-width: 420px) {
             .terminal { padding: 18px 14px; }
@@ -350,7 +337,11 @@
         const client = supabase.createClient("https://kofyybvvzzlcxemwlaqu.supabase.co", "sb_publishable_EXyi06rbFxY4OUV1XRyfjw_omMnlxFN");
         const params = new URLSearchParams(window.location.search);
         let targetPC = String(Math.min(parseInt(params.get('pc') || '1', 10) || 1, 10)).padStart(2, '0');
-        let qrAccessGranted = false, html5Qr = null, barcodeStream = null, rafId = null;
+        let qrAccessGranted = false;
+        let html5Qr = null;
+        let barcodeStream = null;
+        let rafId = null;
+        let durationTimer = null;
 
         document.getElementById('pcBadgeText').textContent = `PC ${targetPC}`;
 
@@ -372,28 +363,46 @@
             document.getElementById('pcBadge').classList.add('show');
         }
 
-        function showView(el) { el.classList.remove('hidden'); requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('show'))); }
-        function hideView(el, done) { el.classList.remove('show'); setTimeout(() => { el.classList.add('hidden'); if (done) done(); }, 420); }
+        function showView(el) {
+            el.classList.remove('hidden');
+            requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('show')));
+        }
+
+        function hideView(el, done) {
+            el.classList.remove('show');
+            setTimeout(() => {
+                el.classList.add('hidden');
+                if (done) done();
+            }, 420);
+        }
 
         function setStatus(msg, color) {
             const el = document.getElementById('scanStatus');
+            if (!el) return;
             el.textContent = msg;
             el.style.color = color || 'var(--text-dim)';
         }
 
         function stopScanner() {
-            if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+            if (rafId) {
+                cancelAnimationFrame(rafId);
+                rafId = null;
+            }
             if (barcodeStream) {
                 barcodeStream.getTracks().forEach(t => t.stop());
                 barcodeStream = null;
             }
             if (html5Qr) {
                 html5Qr.stop().catch(() => {}).then(() => html5Qr.clear().catch(() => {})).catch(() => {});
+                html5Qr = null;
             }
         }
 
         async function startHtml5Qrcode() {
-            if (typeof Html5Qrcode === 'undefined') { startBarcodeDetector(); return; }
+            if (typeof Html5Qrcode === 'undefined') {
+                startBarcodeDetector();
+                return;
+            }
             try {
                 html5Qr = new Html5Qrcode('qr-reader', false);
                 await html5Qr.start(
@@ -431,7 +440,10 @@
                     if (qrAccessGranted) return;
                     try {
                         const codes = await detector.detect(video);
-                        if (codes && codes.length) { handleScan(codes[0].rawValue); return; }
+                        if (codes && codes.length) {
+                            handleScan(codes[0].rawValue);
+                            return;
+                        }
                     } catch (_) {}
                     if (!qrAccessGranted) rafId = requestAnimationFrame(loop);
                 };
@@ -475,60 +487,8 @@
             setTimeout(() => document.getElementById('lrn').focus(), 600);
         }
 
-        async function processAuth() {
-            const lrn = document.getElementById('lrn').value.trim();
-            if (lrn.length < 12) {
-                Swal.fire({ icon: 'warning', title: 'Oops!', text: 'Please enter a valid 12-digit LRN.', confirmButtonColor: '#0a84ff' });
-                return;
-            }
-
-            const btn = document.getElementById('signInBtn');
-            btn.disabled = true;
-            try {
-                const { data: student } = await client.from('student_roster').select('student_name').eq('lrn', lrn).maybeSingle();
-                if (student) {
-                    const now = new Date();
-                    const { error } = await client.from('active_sessions').update({
-                        student_id: lrn,
-                        student_name: `${student.student_name} - 12 CSS`,
-                        time_in: now.toISOString(),
-                        time_out: null
-                    }).eq('pc_number', Number(targetPC));
-                    if (error) throw error;
-
-                    document.getElementById('pageTitle').textContent = 'Session Active';
-                    document.getElementById('pageSubtitle').textContent = 'You are signed in to this workstation';
-                    document.getElementById('mainCard').innerHTML = `
-                        <div class="section-tag">12 CSS</div>
-                        <div class="session-status"><span class="pulse"></span>Session Active</div>
-                        <div class="info-grid">
-                            <div class="info-item full">
-                                <label>Student</label>
-                                <div class="value" id="dashName">${student.student_name} - 12 CSS</div>
-                            </div>
-                            <div class="info-item">
-                                <label>Time In</label>
-                                <div class="value" id="dashTime">${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                            </div>
-                            <div class="info-item">
-                                <label>Duration</label>
-                                <div class="value highlight" id="dashDuration">00:00:00</div>
-                            </div>
-                        </div>
-                    `;
-                    startDurationTimer(now.toISOString());
-                } else {
-                    Swal.fire({ icon: 'error', title: 'Not Found', text: 'This LRN is not registered.', confirmButtonColor: '#0a84ff' });
-                }
-            } catch (e) {
-                console.error(e);
-                Swal.fire({ icon: 'error', title: 'Connection Error', text: 'Could not reach the server. Check your connection.', confirmButtonColor: '#0a84ff' });
-            } finally {
-                btn.disabled = false;
-            }
-        }
-
         function startDurationTimer(startIso) {
+            if (durationTimer) clearInterval(durationTimer);
             const tick = () => {
                 const el = document.getElementById('dashDuration');
                 if (!el) return;
@@ -539,11 +499,81 @@
                 el.textContent = `${h}:${m}:${s}`;
             };
             tick();
-            setInterval(tick, 1000);
+            durationTimer = setInterval(tick, 1000);
+        }
+
+        async function processAuth() {
+            const lrn = document.getElementById('lrn').value.trim();
+            if (lrn.length < 12) {
+                Swal.fire({ icon: 'warning', title: 'Oops!', text: 'Please enter a valid 12-digit LRN.', confirmButtonColor: '#0a84ff' });
+                return;
+            }
+
+            const btn = document.getElementById('signInBtn');
+            btn.disabled = true;
+
+            try {
+                const { data: student } = await client
+                    .from('student_roster')
+                    .select('student_name')
+                    .eq('lrn', lrn)
+                    .maybeSingle();
+
+                if (!student) {
+                    Swal.fire({ icon: 'error', title: 'Not Found', text: 'This LRN is not registered.', confirmButtonColor: '#0a84ff' });
+                    return;
+                }
+
+                const now = new Date();
+                const payload = {
+                    student_id: lrn,
+                    student_name: `${student.student_name} - 12 CSS`,
+                    time_in: now.toISOString(),
+                    time_out: null
+                };
+
+                const { error } = await client
+                    .from('active_sessions')
+                    .upsert(payload, { onConflict: 'pc_number' })
+                    .eq('pc_number', Number(targetPC));
+
+                if (error) throw error;
+
+                document.getElementById('pageTitle').textContent = 'Session Active';
+                document.getElementById('pageSubtitle').textContent = 'You are signed in to this workstation';
+
+                document.getElementById('mainCard').innerHTML = `
+                    <div class="section-tag">12 CSS</div>
+                    <div class="session-status"><span class="pulse"></span>Session Active</div>
+                    <div class="info-grid">
+                        <div class="info-item full">
+                            <label>Student</label>
+                            <div class="value" id="dashName">${student.student_name} - 12 CSS</div>
+                        </div>
+                        <div class="info-item">
+                            <label>Time In</label>
+                            <div class="value" id="dashTime">${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                        </div>
+                        <div class="info-item">
+                            <label>Duration</label>
+                            <div class="value highlight" id="dashDuration">00:00:00</div>
+                        </div>
+                    </div>
+                `;
+
+                startDurationTimer(now.toISOString());
+            } catch (e) {
+                console.error(e);
+                Swal.fire({ icon: 'error', title: 'Connection Error', text: 'Could not reach the server. Check your connection.', confirmButtonColor: '#0a84ff' });
+            } finally {
+                btn.disabled = false;
+            }
         }
 
         document.getElementById('signInBtn').addEventListener('click', processAuth);
-        document.getElementById('lrn').addEventListener('keydown', (e) => { if (e.key === 'Enter') processAuth(); });
+        document.getElementById('lrn').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') processAuth();
+        });
 
         window.addEventListener('load', () => {
             initScanner();
