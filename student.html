@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#000000">
-    <title>DNHS Terminal</title>
+    <title>DNHS PORTAL</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -421,7 +421,9 @@
                 const reader = document.getElementById('qr-reader');
                 reader.innerHTML = '';
                 reader.appendChild(video);
-                barcodeStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } });
+                barcodeStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+                });
                 video.srcObject = barcodeStream;
                 await video.play();
                 setStatus('Point the QR code at the frame');
@@ -484,7 +486,6 @@
             btn.disabled = true;
             try {
                 const { data: student } = await client.from('student_roster').select('student_name').eq('lrn', lrn).maybeSingle();
-
                 if (student) {
                     const now = new Date();
                     const { error } = await client.from('active_sessions').update({
@@ -493,7 +494,6 @@
                         time_in: now.toISOString(),
                         time_out: null
                     }).eq('pc_number', Number(targetPC));
-
                     if (error) throw error;
 
                     document.getElementById('pageTitle').textContent = 'Session Active';
@@ -516,6 +516,7 @@
                             </div>
                         </div>
                     `;
+                    startDurationTimer(now.toISOString());
                 } else {
                     Swal.fire({ icon: 'error', title: 'Not Found', text: 'This LRN is not registered.', confirmButtonColor: '#0a84ff' });
                 }
@@ -525,6 +526,20 @@
             } finally {
                 btn.disabled = false;
             }
+        }
+
+        function startDurationTimer(startIso) {
+            const tick = () => {
+                const el = document.getElementById('dashDuration');
+                if (!el) return;
+                const diff = Date.now() - new Date(startIso).getTime();
+                const h = String(Math.floor(diff / 3600000)).padStart(2, '0');
+                const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+                const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+                el.textContent = `${h}:${m}:${s}`;
+            };
+            tick();
+            setInterval(tick, 1000);
         }
 
         document.getElementById('signInBtn').addEventListener('click', processAuth);
