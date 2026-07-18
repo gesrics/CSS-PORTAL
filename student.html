@@ -480,7 +480,6 @@
         }
 
         function cleanStudentName(name) {
-            // Remove a trailing " - 12 CSS" (if it exists) and trim
             return String(name || '')
                 .replace(/\s*-\s*12\s*css\s*$/i, '')
                 .trim();
@@ -494,16 +493,18 @@
                 try {
                     const { data } = await client
                         .from('active_sessions')
-                        .select('student_id')
+                        .select('student_id,time_out')
                         .eq('pc_number', pcNum)
                         .maybeSingle();
 
-                    const ended = !data || !data.student_id || String(data.student_id) !== String(lrn);
+                    const timedOut = !!data?.time_out; // admin end sets time_out
+                    const studentMismatch = !data || !data.student_id || String(data.student_id) !== String(lrn);
+
+                    const ended = timedOut || studentMismatch;
                     if (!ended) return;
 
                     clearInterval(sessionWatchTimer);
                     sessionWatchTimer = null;
-
                     window.location.reload();
                 } catch (e) {}
             }, 3000);
@@ -529,7 +530,6 @@
                     .maybeSingle();
 
                 if (error) throw error;
-
                 if (!student) {
                     Swal.fire({ icon: 'error', title: 'Not Found', text: 'This LRN is not registered.', confirmButtonColor: '#0a84ff' });
                     return;
