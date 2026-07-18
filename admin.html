@@ -133,7 +133,7 @@
         .card.active-student { border-left-color: #06b6d4; }
         .card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4); border-color: rgba(255, 255, 255, 0.15); }
 
-        .card h3 { font-size: 18px; font-weight: 600; margin-bottom: 10px; letter-spacing: -0.01em; color: rgba(255, 255, 255, 0.95); }
+        .card h3 { font-size: 18px; font-weight: 600; margin-bottom: 10px; letter-spacing: -0.01em; color: rgba(255,255,255,0.95); }
 
         .meta {
             display: grid;
@@ -168,6 +168,8 @@
             font-weight: 700;
             cursor: pointer;
         }
+
+        .btn-session:disabled { opacity: 0.55; cursor: not-allowed; }
 
         .btn {
             padding: 10px 18px;
@@ -333,7 +335,6 @@
     let burgerOpen = false;
     let realtimeChannel = null;
     let debounceTimer = null;
-    let durationIntervals = {};
 
     async function verifyLogin() {
         const pass = document.getElementById('adminPass').value.trim();
@@ -386,6 +387,11 @@
         document.getElementById('css12Section').style.display = tab === 'css12' ? 'block' : 'none';
     }
 
+    // Active means student_id exists AND time_out is null (so after end, it becomes inactive but still shows last name/LRN)
+    function isActiveSession(session) {
+        return !!session.student_id && !session.time_out;
+    }
+
     function isCss12Student(session) {
         if (!session.student_name) return false;
         const name = String(session.student_name).toLowerCase();
@@ -410,17 +416,17 @@
     }
 
     function createCard(s) {
-        const isActive = !!s.student_id;
+        const active = isActiveSession(s);
         const displayName = s.student_name ? String(s.student_name) : 'Vacant';
-
         const lrn = s.student_id ? String(s.student_id) : '--';
+
         const timeIn = formatTime(s.time_in);
         const timeOut = formatTime(s.time_out);
 
         const card = document.createElement('div');
-        card.className = 'card' + (isActive ? ' active-student' : ' vacant');
+        card.className = 'card' + (active ? ' active-student' : ' vacant');
         card.setAttribute('data-pc', s.pc_number);
-        card.setAttribute('data-active', String(isActive));
+        card.setAttribute('data-active', String(active));
 
         const timeBlocks = `
             <div class="meta">
@@ -435,12 +441,14 @@
             </div>
         `;
 
-        const durationHtml = isActive
+        const durationHtml = active
             ? `<div class="duration" data-time-in="${escapeHtml(String(s.time_in || ''))}">Duration: 00h 00m 00s</div>`
             : `<div class="duration" style="color: rgba(255,255,255,0.35);">Duration: --</div>`;
 
-        const endBtn = isActive
-            ? `<div style="margin-top:14px;"><button class="btn-session" onclick="endSession('${s.pc_number}')">End Session</button></div>`
+        const endBtn = active
+            ? `<div style="margin-top:14px;">
+                   <button class="btn-session" onclick="endSession('${s.pc_number}')" data-pc="${s.pc_number}">End Session</button>
+               </div>`
             : '';
 
         card.innerHTML = `
@@ -466,14 +474,19 @@
         });
         if (!result.isConfirmed) return;
 
+        const nowIso = new Date().toISOString();
+
+        // IMPORTANT CHANGE:
+        // Don't clear student_id/student_name so 12 CSS section can still show Name + LRN after end.
         const { error } = await client.from('active_sessions').update({
-            student_id: null,
-            student_name: null,
-            time_in: null,
-            time_out: new Date().toISOString()
+            time_out: nowIso,
+            // keep student_id, student_name, time_in
         }).eq('pc_number', pc);
 
         if (error) Swal.fire('Error', 'Failed to end session', 'error');
+
+        // refresh quickly
+        fetchStatus();
     }
 
     async function fetchStatus() {
@@ -501,15 +514,17 @@
                 time_out: null
             };
 
-            const isActive = !!session.student_id;
-            if (isActive) activeCount++;
-            if (isActive && isCss12Student(session)) css12ActiveCount++;
+            const active = isActiveSession(session);
 
-            // All
+            if (active) activeCount++;
+            if (active && isCss12Student(session)) css12ActiveCount++;
+
+            // All PCs
             allGrid.appendChild(createCard(session));
 
-            // CSS12: show only css12-active; but when inactive/vacant show vacant cards too (so grid stays consistent).
-            // If you want to hide vacant cards instead, tell me.
+            // Only show cards in CSS12 section, but keep your grid consistent (shows vacant style too)
+            // You asked: show after end in 12 CSS monitor; since we won't null student_name/id anymore,
+            // it will still appear there with Time Out.
             css12Grid.appendChild(createCard(session));
         }
 
@@ -529,25 +544,6 @@
                 debounceTimer = setTimeout(fetchStatus, 100);
             })
             .subscribe();
-    }
-
-    async function toggleLoginPassword() {
-        const input = document.getElementById('adminPass');
-        const btn = document.querySelector('#loginView .password-toggle');
-        if (!input || !btn) return;
-
-        const eyeOpen = btn.querySelector('.eye-open');
-        const eyeClosed = btn.querySelector('.eye-closed');
-
-        if (input.type === 'password') {
-            input.type = 'text';
-            eyeOpen.classList.add('hidden');
-            eyeClosed.classList.remove('hidden');
-        } else {
-            input.type = 'password';
-            eyeOpen.classList.remove('hidden');
-            eyeClosed.classList.add('hidden');
-        }
     }
 
     async function resetPassword() {
@@ -593,6 +589,25 @@
     function toggleSwalPassword() {
         const input = document.getElementById('swalNewPass');
         const btn = document.querySelector('.swal2-password-wrapper .password-toggle');
+        if (!input || !btn) return;
+
+        const eyeOpen = btn.querySelector('.eye-open');
+        const eyeClosed = btn.querySelector('.eye-closed');
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            eyeOpen.classList.add('hidden');
+            eyeClosed.classList.remove('hidden');
+        } else {
+            input.type = 'password';
+            eyeOpen.classList.remove('hidden');
+            eyeClosed.classList.add('hidden');
+        }
+    }
+
+    function toggleLoginPassword() {
+        const input = document.getElementById('adminPass');
+        const btn = document.querySelector('#loginView .password-toggle');
         if (!input || !btn) return;
 
         const eyeOpen = btn.querySelector('.eye-open');
