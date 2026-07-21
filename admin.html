@@ -208,7 +208,6 @@
         }
         .hidden { display: none !important; }
 
-        /* Ensure eye icons are visible */
         .password-toggle svg { width: 22px; height: 22px; }
         #swalNewPass + .password-toggle { pointer-events: auto; }
 
@@ -261,7 +260,14 @@
 
             <div class="input-group">
                 <div class="password-wrapper">
-                    <input type="password" id="adminPass" class="input-field" placeholder="Enter Password">
+                    <input
+                        type="password"
+                        id="adminPass"
+                        class="input-field"
+                        placeholder="Enter Password"
+                        autocomplete="current-password"
+                        inputmode="text"
+                    >
                     <button class="password-toggle" onclick="toggleLoginPassword()" type="button" aria-label="Toggle password visibility">
                         <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
@@ -295,7 +301,7 @@
                 <div class="burger-menu" id="burgerMenu">
                     <button class="burger-item" onclick="resetPassword()">Reset Password</button>
                     <div class="burger-divider"></div>
-                    <button class="burger-item danger" onclick="window.location.reload()">Logout</button>
+                    <button class="burger-item danger" onclick="forceLogout()">Logout</button>
                 </div>
             </div>
         </div>
@@ -339,9 +345,29 @@
     const client = supabase.createClient("https://kofyybvvzzlcxemwlaqu.supabase.co", "sb_publishable_EXyi06rbFxY4OUV1XRyfjw_omMnlxFN");
     const TOTAL_PCS = 10;
 
+    const AUTH_KEY = "admin_logged_in_v1";
     let burgerOpen = false;
     let realtimeChannel = null;
     let debounceTimer = null;
+
+    let activeRealtimeChannel = null;
+    let realtimeChannelGeneric = null;
+
+    function setLoggedIn(val) {
+        localStorage.setItem(AUTH_KEY, val ? "1" : "0");
+    }
+    function isLoggedIn() {
+        return localStorage.getItem(AUTH_KEY) === "1";
+    }
+
+    function showLoginView() {
+        document.getElementById('dashView').classList.remove('active');
+        document.getElementById('loginView').classList.add('active');
+    }
+    function showDashView() {
+        document.getElementById('loginView').classList.remove('active');
+        document.getElementById('dashView').classList.add('active');
+    }
 
     async function verifyLogin() {
         const pass = document.getElementById('adminPass').value.trim();
@@ -351,8 +377,8 @@
             return;
         }
         if (pass === data.password) {
-            document.getElementById('loginView').classList.remove('active');
-            document.getElementById('dashView').classList.add('active');
+            setLoggedIn(true);
+            showDashView();
             await fetchStatus();
             startRealtime();
         } else {
@@ -360,10 +386,11 @@
         }
     }
 
-    function logoutToLoginView() {
-        document.getElementById('dashView').classList.remove('active');
-        document.getElementById('loginView').classList.add('active');
+    function forceLogout() {
+        setLoggedIn(false);
+        stopRealtime();
         document.getElementById('adminPass').value = '';
+        showLoginView();
     }
 
     function toggleBurgerMenu() {
@@ -397,6 +424,39 @@
             eyeClosed.classList.toggle('hidden', isPassword);
         }
     }
+
+    // Enter key on desktop + mobile
+    document.addEventListener('DOMContentLoaded', () => {
+        const passInput = document.getElementById('adminPass');
+        const loginBtn = document.querySelector('#loginView .btn');
+        if (!passInput || !loginBtn) return;
+
+        passInput.addEventListener('keydown', (e) => {
+            const isEnter = e.key === 'Enter' || e.code === 'Enter' || e.keyCode === 13;
+            if (!isEnter) return;
+            e.preventDefault();
+            loginBtn.click();
+        });
+
+        passInput.addEventListener('keypress', (e) => {
+            const isEnter = e.key === 'Enter' || e.charCode === 13;
+            if (!isEnter) return;
+            e.preventDefault();
+            loginBtn.click();
+        });
+    });
+
+    // NOTE: check auth state on load (refresh goes to login)
+    window.addEventListener('load', async () => {
+        if (!isLoggedIn()) {
+            showLoginView();
+            stopRealtime();
+            return;
+        }
+        showDashView();
+        await fetchStatus();
+        startRealtime();
+    });
 
     function formatTime(iso) {
         if (!iso) return '--';
@@ -552,6 +612,40 @@
         startDurationTicker();
     }
 
+    function stopRealtime() {
+        try {
+            if (realtimeChannel) realtimeChannel.unsubscribe();
+        } catch {}
+        try {
+            if (realtimeChannelGeneric) realtimeChannelGeneric.unsubscribe();
+        } catch {}
+        realtimeChannel = null;
+        realtimeChannelGeneric = null;
+    }
+
+    function startRealtime() {
+        if (!isLoggedIn()) return;
+        if (realtimeChannel) return;
+        stopRealtime();
+
+        realtimeChannel = client
+            .channel('active_sessions_realtime')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'active_sessions' }, () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(fetchStatus, 100);
+            })
+            .subscribe();
+
+        // also stop if load happens twice; keep only one channel
+        realtimeChannelGeneric = client
+            .channel('active_sessions_realtime_generic')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'active_sessions' }, () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(fetchStatus, 100);
+            })
+            .subscribe();
+    }
+
     function toggleSwalPassword() {
         const input = document.getElementById('swalNewPass');
         if (!input) return;
@@ -578,7 +672,6 @@
                     Choose a new admin password. After updating, you’ll be logged out to use the new one.
                 </div>
 
-                <!-- Professional + Facebook-style -->
                 <div style="
                     padding: 14px 14px;
                     border-radius: 16px;
@@ -631,7 +724,6 @@
             color: '#fff',
             backdrop: 'rgba(0, 0, 0, 0.82)',
             didOpen: () => {
-                // ensure initial state icons are correct/visible
                 const input = document.getElementById('swalNewPass');
                 const modal = document.querySelector('.swal2-container .swal2-popup');
                 const btn = modal ? modal.querySelector('button.password-toggle[onclick="toggleSwalPassword()"]') : null;
@@ -667,29 +759,9 @@
                 confirmButtonColor: '#1877F2'
             });
 
-            logoutToLoginView();
+            forceLogout(); // ensures login view after update
         }
     }
-
-    function startRealtime() {
-        if (realtimeChannel) return;
-        realtimeChannel = client
-            .channel('active_sessions_realtime')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'active_sessions' }, () => {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(fetchStatus, 100);
-            })
-            .subscribe();
-    }
-
-    window.addEventListener('load', fetchStatus);
-
-    client.channel('active_sessions')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'active_sessions' }, () => {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(fetchStatus, 100);
-        })
-        .subscribe();
 </script>
 </body>
 </html>
