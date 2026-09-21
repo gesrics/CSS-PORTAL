@@ -357,6 +357,7 @@
         const client = supabase.createClient("https://kofyybvvzzlcxemwlaqu.supabase.co", "sb_publishable_EXyi06rbFxY4OUV1XRyfjw_omMnlxFN");
         const params = new URLSearchParams(window.location.search);
         let targetPC = String(Math.min(parseInt(params.get('pc') || '1', 10) || 1, 10)).padStart(2, '0');
+        const urlPC = targetPC; // preserve URL param as source of truth
 
         let qrAccessGranted = false, html5Qr = null, barcodeStream = null, rafId = null;
         let durationTimer = null, sessionWatchTimer = null;
@@ -446,9 +447,35 @@
 
         function handleScan(raw) {
             if (qrAccessGranted) return;
-            const pc = extractPC(raw);
-            if (!pc) return;
-            targetPC = pc;
+            
+            // Validate QR code URL
+            let qrPC = null;
+            try {
+                const url = new URL(raw);
+                if (url.hostname !== 'css-qrbased.vercel.app' && url.hostname !== 'localhost' && url.hostname !== '127.0.0.1') {
+                    setStatus('Invalid QR code: wrong domain', 'var(--accent)');
+                    return;
+                }
+                qrPC = url.searchParams.get('pc');
+            } catch (_) {
+                // Not a valid URL
+                setStatus('Invalid QR code format', 'var(--accent)');
+                return;
+            }
+            
+            if (!qrPC) {
+                setStatus('Invalid QR code: missing PC parameter', 'var(--accent)');
+                return;
+            }
+            
+            qrPC = String(Math.min(Math.max(parseInt(qrPC, 10) || 1, 1), 10)).padStart(2, '0');
+            
+            if (qrPC !== urlPC) {
+                setStatus(`Wrong QR code: this is for PC ${qrPC}`, 'var(--accent)');
+                return;
+            }
+            
+            targetPC = qrPC;
             showPCBadge(targetPC);
             qrAccessGranted = true;
             setStatus('Access granted', 'var(--accent-2)');
