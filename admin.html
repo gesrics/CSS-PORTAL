@@ -312,7 +312,7 @@
         </div>
 
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('all')" id="tabAll">All PCs</button>
+            <button class="tab active" onclick="switchTab('all')" id="tabAll">11 CSS</button>
             <button class="tab" onclick="switchTab('css12')" id="tabCss12">
                 <span class="dot" style="background:#06b6d4;display:inline-block;margin-right:6px;"></span>
                 12 CSS
@@ -321,7 +321,7 @@
 
         <div id="allPcsSection">
             <div class="section-header">
-                <h2 class="section-title">ALL PC SESSIONS</h2>
+                <h2 class="section-title">11 CSS SECTION MONITOR</h2>
                 <span class="section-badge" id="allCount">0 Active</span>
             </div>
             <div class="grid" id="monitorGrid"></div>
@@ -342,7 +342,7 @@
 </div>
 
 <script>
-    const client = supabase.createClient("https://kofyybvvzzlcxemwlaqu.supabase.co", "sb_publishable_EXyi06rbFxY4OUV1XRyfjw_omMnlxFN");
+    const client = supabase.createClient("https://evcyswncirajubbzsmkd.supabase.co", "sb_publishable_yDAP_k3896DDgKZhw4hskg_JOtNdF3w");
     const TOTAL_PCS = 10;
 
     const AUTH_KEY = "admin_logged_in_v1";
@@ -481,10 +481,12 @@
         return !!session.student_id && !session.time_out;
     }
 
+    function isCss11Student(session) {
+        return session.grade_level === '11';
+    }
+
     function isCss12Student(session) {
-        if (!session.student_name) return false;
-        const name = String(session.student_name).toLowerCase();
-        return name.includes('css') || name.includes('12');
+        return session.grade_level === '12';
     }
 
     function createCard(s, showEndButton) {
@@ -585,7 +587,7 @@
         allGrid.innerHTML = '';
         css12Grid.innerHTML = '';
 
-        let activeCount = 0;
+        let css11ActiveCount = 0;
         let css12ActiveCount = 0;
 
         for (let i = 1; i <= TOTAL_PCS; i++) {
@@ -598,14 +600,23 @@
             };
 
             const active = isActiveSession(session);
-            if (active) activeCount++;
-            if (active && isCss12Student(session)) css12ActiveCount++;
+            
+            const isCss11 = active && isCss11Student(session);
+            const isCss12 = active && isCss12Student(session);
+            
+            if (isCss11) css11ActiveCount++;
+            if (isCss12) css12ActiveCount++;
 
-            allGrid.appendChild(createCard(session, false));
-            css12Grid.appendChild(createCard(session, true));
+            if (isCss11) {
+                allGrid.appendChild(createCard(session, false));
+            }
+            
+            if (isCss12) {
+                css12Grid.appendChild(createCard(session, true));
+            }
         }
 
-        document.getElementById('allCount').textContent = `${activeCount} Active`;
+        document.getElementById('allCount').textContent = `${css11ActiveCount} Active`;
         document.getElementById('css12Count').textContent = `${css12ActiveCount} Active`;
         css12Empty.style.display = css12ActiveCount === 0 ? 'block' : 'none';
 
