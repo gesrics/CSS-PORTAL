@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#050507">
+    <title>Student Portal - DNHS</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #050507;
+            --glass: rgba(255, 255, 255, 0.055);
+            --border: rgba(255, 255, 255, 0.10);
+            --border-soft: rgba(255, 255, 255, 0.06);
+            --text: #f5f5f7;
+            --text-dim: rgba(245, 245, 247, 0.55);
+            --accent: #0a84ff;
+            --accent-2: #06b6d4;
+            --danger: #ff453a;
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body { height: 100%; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            opacity: 0;
+            filter: blur(12px);
+            transform: scale(0.98);
+            transition: opacity 0.8s var(--ease), filter 0.8s var(--ease), transform 0.8s var(--ease);
+        }
+
+        /* Super smooth page load / exit states */
+        body.page-loaded {
+            opacity: 1;
+            filter: blur(0px);
+            transform: scale(1);
+        }
+
+        body.fade-out {
+            opacity: 0;
+            filter: blur(16px);
+            transform: scale(1.02);
+        }
+
+        .background {
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(60% 50% at 18% 82%, rgba(10, 132, 255, 0.22), transparent 60%),
+                radial-gradient(55% 45% at 82% 18%, rgba(6, 182, 212, 0.16), transparent 60%),
+                radial-gradient(70% 60% at 50% 50%, rgba(120, 80, 220, 0.08), transparent 70%);
+            z-index: 0;
+        }
+
+        .terminal {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 440px;
+            padding: 20px;
+        }
+        
+        .terminal-header { text-align: center; margin-bottom: 22px; display: flex; flex-direction: column; align-items: center; }
+        
+        .portal-logo-container {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2px solid var(--border);
+            background: rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 14px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        .portal-logo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .terminal-header h1 { font-size: 26px; font-weight: 700; line-height: 1.1; }
+        .terminal-header p { margin-top: 6px; font-size: 13.5px; color: var(--text-dim); }
+
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(38px);
+            -webkit-backdrop-filter: blur(38px);
+            border: 1px solid var(--border);
+            border-radius: 26px;
+            padding: 26px 22px;
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            transition: all 0.5s var(--ease);
+        }
+
+        .lock-icon-box {
+            width: 52px; height: 52px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 14px auto;
+        }
+        .lock-icon-box svg { width: 24px; height: 24px; stroke: var(--text-dim); }
+
+        .access-blocked-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 18px;
+        }
+
+        #reader {
+            width: 100% !important;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: rgba(0, 0, 0, 0.6);
+            margin-bottom: 12px;
+        }
+        #reader video { width: 100% !important; border-radius: 16px; }
+
+        .scan-hint {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-top: 10px;
+            margin-bottom: 14px;
+        }
+
+        .input-group { margin-bottom: 16px; text-align: left; }
+        .input-group label {
+            display: block; font-size: 12px; font-weight: 500;
+            color: var(--text-dim); margin-bottom: 6px;
+        }
+        .input-group input {
+            width: 100%; padding: 14px 16px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            color: var(--text); font-size: 15px; font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input-group input:focus { border-color: var(--accent-2); }
+
+        .btn {
+            width: 100%; padding: 15px;
+            background: linear-gradient(135deg, #0a84ff, #06b6d4);
+            border: none; border-radius: 14px;
+            font-weight: 600; font-size: 15px; font-family: inherit;
+            color: #fff; cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+            box-shadow: 0 10px 30px rgba(10, 132, 255, 0.28);
+            margin-top: 8px;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border);
+            box-shadow: none;
+            margin-top: 8px;
+        }
+
+        .session-view { text-align: center; }
+        .session-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 6px 14px; background: rgba(6, 182, 212, 0.15);
+            border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 20px;
+            color: var(--accent-2); font-size: 12px; font-weight: 600;
+            margin-bottom: 18px; text-transform: uppercase;
+        }
+        .info-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-soft);
+            border-radius: 14px; padding: 14px; margin-bottom: 12px;
+            text-align: left;
+        }
+        .info-box .lbl { font-size: 11px; color: var(--text-dim); text-transform: uppercase; font-weight: 600; }
+        .info-box .val { font-size: 15px; font-weight: 600; margin-top: 4px; color: #fff; word-break: break-word; }
+
+        .admin-note {
+            font-size: 12.5px;
+            color: var(--text-dim);
+            margin-top: 16px;
+            line-height: 1.4;
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="background"></div>
+
+    <div class="terminal">
+        <div class="terminal-header">
+            <div class="portal-logo-container">
+                <img src="Logo.jpg" alt="Portal Logo" onerror="this.style.display='none'">
+            </div>
+            <h1 id="pageTitle">STUDENT PORTAL</h1>
+            <p id="pageSubtitle">SCAN THE STATION QR CODE</p>
+        </div>
+
+        <div class="glass-card">
+            <!-- STEP 1: SCAN STATION QR CODE (LIVE CAMERA) -->
+            <div id="stationScanView">
+                <div class="lock-icon-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                </div>
+                <div class="access-blocked-title">Access Blocked</div>
+                
+                <div id="reader"></div>
+                <div class="scan-hint">POINT YOUR CAMERA AT THE STATION QR CODE</div>
+            </div>
+
+            <!-- STEP 2: ENTER 12-DIGIT LRN -->
+            <div id="lrnInputView" class="hidden">
+                <div style="margin-bottom: 16px;">
+                    <span id="selectedStationBadge" class="session-badge" style="margin-bottom: 0;">PC #01</span>
+                </div>
+                <p style="font-size: 13.5px; color: var(--text-dim); margin-bottom: 16px;"></p>
+                
+                <form id="signInForm" onsubmit="handleSignIn(event)">
+                    <div class="input-group">
+                        <label for="lrn">12-Digit LRN</label>
+                        <input type="text" id="lrn" inputmode="numeric" placeholder="Enter 12-digit LRN" maxlength="12" autocomplete="off">
+                    </div>
+
+                    <button type="submit" class="btn" id="signInBtn">Sign In</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetToStationScan()">Back</button>
+                </form>
+            </div>
+
+            <!-- STEP 3: SESSION ACTIVE VIEW -->
+            <div id="sessionView" class="session-view hidden">
+                <div style="margin-bottom: 16px;">
+                    <span class="session-badge" id="activePcBadge" style="margin-bottom: 0;">Active PC Session</span>
+                </div>
+
+                <div class="info-box">
+                    <div class="lbl">STUDENT DETAILS</div>
+                    <div class="val" id="sessDetails">-</div>
+                </div>
+
+                <div class="info-box">
+                    <div class="lbl">TIME STARTED</div>
+                    <div class="val" id="sessTime">-</div>
+                </div>
+
+                <p class="admin-note">
+                <b>Session Active</b><br>
+                    Only the Lab Administrator can end or log out your session.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = "https://evcyswncirajubbzsmkd.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_yDAP_k3896DDgKZhw4hskg_JOtNdF3w";
+        const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const DB_TABLE = 'active_sessions';
+        const MASTER_TABLE = 'student_roster';
+
+        let studentCheckInterval = null;
+        let html5QrCode = null;
+        let currentScannedPc = null;
+        let verifiedStudent = null;
+
+        window.addEventListener('load', async () => {
+            // Trigger smooth cinematic fade-in with blur effect on load
+            requestAnimationFrame(() => {
+                document.body.classList.add('page-loaded');
+            });
+
+            await checkExistingDeviceSession();
+
+            const hasScannedToken = sessionStorage.getItem('verified_qr_scan');
+            const scannedPcValue = sessionStorage.getItem('scanned_pc_number');
+
+            if (hasScannedToken === 'true' && scannedPcValue) {
+                currentScannedPc = scannedPcValue;
+                await checkPcAndProceed(currentScannedPc, true);
+            } else {
+                startStationScanner();
+            }
+        });
+
+        async function checkExistingDeviceSession() {
+            try {
+                const keys = Object.keys(localStorage);
+                for (let key of keys) {
+                    if (key.startsWith('active_session_id_')) {
+                        const savedSessionId = localStorage.getItem(key);
+                        const pcCode = key.replace('active_session_id_', '');
+
+                        const { data, error } = await client
+                            .from(DB_TABLE)
+                            .select('*')
+                            .eq('id', savedSessionId)
+                            .is('time_out', null)
+                            .maybeSingle();
+
+                        if (data) {
+                            showActiveSessionView(data, pcCode);
+                            startStudentSessionMonitor(savedSessionId, pcCode);
+                            return;
+                        } else {
+                            localStorage.removeItem(key);
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error("Error checking session:", err);
+            }
+        }
+
+        function startStudentSessionMonitor(sessionId, pcCode) {
+            if (studentCheckInterval) clearInterval(studentCheckInterval);
+            
+            studentCheckInterval = setInterval(async () => {
+                try {
+                    const { data, error } = await client
+                        .from(DB_TABLE)
+                        .select('time_out')
+                        .eq('id', sessionId)
+                        .single();
+
+                    if (error) throw error;
+
+                    if (data && data.time_out !== null) {
+                        clearInterval(studentCheckInterval);
+                        localStorage.removeItem(`active_session_id_${pcCode}`);
+                        localStorage.removeItem(`active_name_${pcCode}`);
+                        sessionStorage.clear();
+                        
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Session Ended',
+                            text: 'The administrator has ended your session.',
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                            location.reload();
+                        });
+                    }
+                } catch (err) {
+                    console.error("Error monitoring session status:", err);
+                }
+            }, 4000);
+        }
+
+        function startStationScanner() {
+            sessionStorage.removeItem('verified_qr_scan');
+            sessionStorage.removeItem('scanned_pc_number');
+
+            document.getElementById('stationScanView').classList.remove('hidden');
+            document.getElementById('lrnInputView').classList.add('hidden');
+            document.getElementById('sessionView').classList.add('hidden');
+            document.getElementById('pageTitle').textContent = 'STUDENT PORTAL';
+            document.getElementById('pageSubtitle').textContent = 'SCAN THE STATION QR CODE';
+
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("reader");
+            }
+
+            if (!html5QrCode.isScanning) {
+                html5QrCode.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 220, height: 220 } },
+                    async (decodedText) => {
+                        await processScannedText(decodedText);
+                    },
+                    (errorMessage) => {}
+                ).catch(err => {
+                    console.error("Failed to start scanner:", err);
+                });
+            }
+        }
+
+        async function stopScanner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                try {
+                    await html5QrCode.stop();
+                } catch (err) {
+                    console.error("Failed to stop scanner", err);
+                }
+            }
+        }
+
+        async function processScannedText(decodedText) {
+            let rawText = decodedText ? decodedText.trim() : "";
+            let pcNumStr = null;
+
+            try {
+                let searchPart = rawText.includes('?') ? rawText.split('?')[1] : rawText;
+                let params = new URLSearchParams(searchPart);
+                pcNumStr = params.get('pc');
+            } catch (e) {}
+
+            if (!pcNumStr) {
+                let match = rawText.match(/pc[^\d]*(\d+)/i);
+                if (match && match[1]) {
+                    pcNumStr = match[1];
+                }
+            }
+
+            if (!pcNumStr) {
+                let numericOnly = rawText.replace(/\D/g, '');
+                if (numericOnly) {
+                    pcNumStr = numericOnly;
+                }
+            }
+
+            let pcIntValue = parseInt(pcNumStr, 10);
+
+            if (isNaN(pcIntValue) || pcIntValue < 1 || pcIntValue > 10) {
+                await stopScanner();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid QR Code',
+                    text: `The scanned content is: "${rawText}". This is not valid for PCs 1 through 10.`,
+                    confirmButtonText: 'Try Again'
+                }).then(() => {
+                    startStationScanner();
+                });
+                return;
+            }
+
+            await stopScanner();
+            currentScannedPc = String(pcIntValue).padStart(2, '0');
+
+            sessionStorage.setItem('verified_qr_scan', 'true');
+            sessionStorage.setItem('scanned_pc_number', currentScannedPc);
+
+            window.history.replaceState({}, document.title, window.location.pathname);
+
+            await checkPcAndProceed(currentScannedPc, false);
+        }
+
+        async function checkPcAndProceed(pcStr, skipSwalLoading) {
+            if (!skipSwalLoading) {
+                Swal.fire({
+                    title: 'Checking Station...',
+                    text: `Verifying PC #${pcStr} status...`,
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+            }
+
+            try {
+                const { data: activeCheck } = await client
+                    .from(DB_TABLE)
+                    .select('*')
+                    .eq('pc_number', pcStr)
+                    .is('time_out', null)
+                    .maybeSingle();
+
+                if (!skipSwalLoading) {
+                    Swal.close();
+                }
+
+                if (activeCheck) {
+                    sessionStorage.clear();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'PC Occupied',
+                        text: `PC #${pcStr} is currently in use. Please choose another station.`
+                    }).then(() => {
+                        startStationScanner();
+                    });
+                    return;
+                }
+
+                document.getElementById('stationScanView').classList.add('hidden');
+                document.getElementById('lrnInputView').classList.remove('hidden');
+                document.getElementById('selectedStationBadge').textContent = `PC #${pcStr}`;
+                document.getElementById('pageTitle').textContent = 'STUDENT PORTAL';
+                document.getElementById('pageSubtitle').textContent = 'ENTER YOUR 12-DIGIT LRN';
+                document.getElementById('lrn').value = '';
+                document.getElementById('lrn').focus();
+
+            } catch (err) {
+                console.error("Error checking PC:", err);
+                if (!skipSwalLoading) Swal.close();
+                Swal.fire('Error', 'Unable to verify PC status.', 'error');
+                startStationScanner();
+            }
+        }
+
+        function resetToStationScan() {
+            currentScannedPc = null;
+            sessionStorage.clear();
+            window.history.replaceState({}, document.title, window.location.pathname);
+            startStationScanner();
+        }
+
+        async function handleSignIn(e) {
+            e.preventDefault();
+
+            if (sessionStorage.getItem('verified_qr_scan') !== 'true') {
+                Swal.fire('Access Denied', 'You must scan the physical station QR code using the camera first.', 'error').then(() => {
+                    startStationScanner();
+                });
+                return;
+            }
+
+            const lrn = document.getElementById('lrn').value.trim();
+
+            if (!lrn) {
+                Swal.fire('Notice', 'Please enter your LRN.', 'info');
+                return;
+            }
+
+            if (lrn.length < 12) {
+                Swal.fire('Invalid', 'LRN must be exactly 12 digits.', 'error');
+                return;
+            }
+
+            Swal.fire({
+                title: 'Verifying...',
+                text: 'Checking LRN record...',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            try {
+                const { data: studentMaster, error: masterError } = await client
+                    .from(MASTER_TABLE)
+                    .select('*')
+                    .eq('lrn', lrn)
+                    .maybeSingle();
+
+                if (masterError || !studentMaster) {
+                    throw new Error('Invalid LRN. Record not found in the master list.');
+                }
+
+                const studentName = studentMaster.student_name || studentMaster.name || studentMaster.full_name || studentMaster.fullname || 'Unknown Student';
+                const section = studentMaster.section || studentMaster.grade_section || studentMaster.grade || '11 CSS';
+
+                const isoNow = new Date().toISOString();
+                let sessionPayload = {
+                    pc_number: currentScannedPc,
+                    student_name: studentName,
+                    lrn: lrn,
+                    section: section,
+                    time_in: isoNow,
+                    time_out: null
+                };
+
+                let { data, error } = await client
+                    .from(DB_TABLE)
+                    .insert([sessionPayload])
+                    .select()
+                    .single();
+
+                if (error) throw error;
+
+                const storageSessionKey = `active_session_id_${currentScannedPc}`;
+                localStorage.setItem(storageSessionKey, data.id);
+                localStorage.setItem(`active_name_${currentScannedPc}`, studentName);
+                sessionStorage.clear();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Access Granted!',
+                    text: `Welcome, ${studentName}! PC #${currentScannedPc} is now unlocked.`,
+                    timer: 1400,
+                    showConfirmButton: false
+                }).then(() => {
+                    // Super smooth blur transition out to student.html
+                    document.body.classList.add('fade-out');
+                    setTimeout(() => {
+                        window.location.href = 'student.html';
+                    }, 650);
+                });
+
+            } catch (err) {
+                console.error("Sign in failed:", err);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Sign In Failed',
+                    text: err.message || 'Failed to process sign in.'
+                });
+            }
+        }
+
+        function showActiveSessionView(data, pcCode) {
+            document.getElementById('stationScanView').classList.add('hidden');
+            document.getElementById('lrnInputView').classList.add('hidden');
+            document.getElementById('sessionView').classList.remove('hidden');
+
+            document.getElementById('pageTitle').textContent = 'STUDENT PORTAL';
+            document.getElementById('pageSubtitle').textContent = 'SESSION IN PROGRESS';
+            document.getElementById('activePcBadge').textContent = `PC #${pcCode}`;
+
+            const localSavedName = localStorage.getItem(`active_name_${pcCode}`);
+            const name = data.student_name || localSavedName || '';
+            const lrn = data.lrn || '';
+            const sec = data.section || '';
+
+            let detailsArr = [];
+            if (name) detailsArr.push(name);
+            if (lrn) detailsArr.push(lrn);
+            if (sec) detailsArr.push(sec);
+
+            let formattedDisplayTime = '-';
+            if (data.time_in) {
+                const dateObj = new Date(data.time_in);
+                if (!isNaN(dateObj.getTime())) {
+                    const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+                    const dateStr = dateObj.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+                    formattedDisplayTime = `${timeStr} - ${dateStr}`;
+                } else {
+                    formattedDisplayTime = data.time_in;
+                }
+            }
+
+            document.getElementById('sessDetails').textContent = detailsArr.join(' | ');
+            document.getElementById('sessTime').textContent = formattedDisplayTime;
+        }
+    </script>
+</body>
+</html>

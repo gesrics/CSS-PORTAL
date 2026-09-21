@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>DNHS Admin Portal</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+        .background {
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.25), transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 115, 0.15), transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(59, 130, 246, 0.1), transparent 50%);
+            z-index: -1;
+        }
+        .background::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            mix-blend-mode: overlay;
+        }
+
+        .view { display: none; opacity: 0; transform: translateY(16px); transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+        .view.active { display: block; opacity: 1; transform: translateY(0); }
+        .admin-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .login-wrapper { min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 36px 28px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            animation: fadeInUp 0.6s ease-out;
+        }
+        .glass-card h2 { margin-bottom: 12px; font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
+        .glass-card p { font-size: 13.5px; color: rgba(255,255,255,0.6); margin-bottom: 24px; line-height: 1.4; }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 12px;
+            position: relative;
+        }
+        .nav-title {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .burger-wrap { position: relative; margin-left: auto; }
+        .burger-btn {
+            width: 44px; height: 44px; border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(20px) saturate(180%);
+            color: #fff; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.25s ease;
+        }
+        .burger-btn:hover { transform: translateY(-1px); background: rgba(255,255,255,0.1); }
+        .burger-btn svg { width: 20px; height: 20px; }
+        .burger-menu {
+            position: absolute;
+            right: 0; top: 54px;
+            width: 220px;
+            padding: 10px;
+            border-radius: 18px;
+            background: rgba(10, 10, 12, 0.92);
+            border: 1px solid rgba(255,255,255,0.08);
+            backdrop-filter: blur(28px) saturate(180%);
+            -webkit-backdrop-filter: blur(28px) saturate(180%);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+            opacity: 0; visibility: hidden;
+            transform: translateY(-8px) scale(0.98);
+            transition: all 0.22s ease;
+            z-index: 20;
+        }
+        .burger-menu.show { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+        .burger-item {
+            width: 100%; border: none; background: transparent;
+            color: rgba(255,255,255,0.92);
+            padding: 12px 14px; border-radius: 12px;
+            text-align: left; font-size: 14px; font-weight: 500;
+            cursor: pointer; transition: background 0.2s ease, transform 0.2s ease;
+            font-family: 'Inter', sans-serif;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .burger-item:hover { background: rgba(255,255,255,0.06); transform: translateX(2px); }
+        .burger-item.danger { color: #fca5a5; }
+        .burger-divider { height: 1px; margin: 8px 6px; background: rgba(255,255,255,0.08); }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 24px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-left: 3px solid transparent;
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+        .card.active-student { border-left-color: #06b6d4; }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4); border-color: rgba(255, 255, 255, 0.15); }
+        .card h3 { font-size: 18px; font-weight: 600; margin-bottom: 10px; color: rgba(255,255,255,0.95); }
+
+        .meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 14px 0 10px;
+        }
+        .meta .box {
+            background: rgba(0,0,0,0.22);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            padding: 12px;
+        }
+        .meta .k { font-size: 11px; color: rgba(255,255,255,0.55); text-transform: uppercase; font-weight: 700; margin-bottom: 6px; }
+        .meta .v { font-size: 13px; color: rgba(255,255,255,0.95); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+        .btn {
+            width: 100%;
+            padding: 15px 18px;
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            border: none;
+            border-radius: 14px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Inter', sans-serif;
+            display: block;
+            touch-action: manipulation;
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25);
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(59, 130, 246, 0.35); }
+        .btn:active { transform: translateY(0); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.3) !important;
+        }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            margin-top: 12px;
+            box-shadow: none;
+        }
+        .btn-secondary:hover { background: rgba(255, 255, 255, 0.12); box-shadow: none; }
+
+        .input-group { margin-bottom: 16px; text-align: left; }
+        
+        .password-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .password-container input {
+            padding-right: 48px;
+        }
+        .toggle-password {
+            position: absolute;
+            right: 14px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            transition: color 0.2s;
+        }
+        .toggle-password:hover { color: #fff; }
+        .toggle-password svg { width: 20px; height: 20px; }
+
+        .input-field {
+            width: 100%; 
+            padding: 15px 18px;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px; 
+            color: #fff; 
+            font-size: 15px; 
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+        .input-field:focus { border-color: rgba(6, 182, 212, 0.6); }
+
+        .monitor-header { text-align: center; margin-bottom: 30px; }
+        .monitor-header h1 {
+            font-size: 32px; font-weight: 700; letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 6px;
+        }
+        .monitor-header p { color: rgba(255,255,255,0.5); font-size: 13.5px; font-weight: 500; }
+
+        .tabs {
+            display: flex; gap: 8px; margin-bottom: 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .tab {
+            padding: 10px 18px; background: none; border: none; border-bottom: 2px solid transparent;
+            color: rgba(255,255,255,0.5); font-size: 14px; font-weight: 500; cursor: pointer;
+            transition: all 0.2s ease; font-family: 'Inter', sans-serif; margin-bottom: -1px;
+        }
+        .tab.active { color: #fff; border-bottom-color: #06b6d4; }
+
+        .section-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.06);
+            flex-wrap: wrap; gap: 10px;
+        }
+        .section-title { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; color: rgba(255,255,255,0.95); }
+        .section-badge {
+            display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px;
+            background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 20px; font-size: 12px; font-weight: 600; color: #06b6d4;
+        }
+
+        .empty-state { text-align: center; padding: 48px 20px; color: rgba(255,255,255,0.4); }
+
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .swal2-container.swal2-backdrop-show {
+            background: rgba(0, 0, 0, 0.82) !important;
+            backdrop-filter: blur(18px) saturate(140%) !important;
+            -webkit-backdrop-filter: blur(18px) saturate(140%) !important;
+        }
+    </style>
+</head>
+<body>
+<div class="background"></div>
+
+<!-- LOGIN VIEW -->
+<div id="loginView" class="view active">
+    <div class="login-wrapper">
+        <div class="glass-card">
+            <h2>Admin Access</h2>
+            <p>Log in to monitor active PC sessions in real-time.</p>
+
+            <div class="input-group">
+                <input type="email" id="adminEmail" class="input-field" placeholder="Enter Email" autocomplete="email">
+            </div>
+
+            <div class="input-group">
+                <div class="password-container">
+                    <input type="password" id="adminPass" class="input-field" placeholder="Enter Password" autocomplete="current-password">
+                    <button type="button" class="toggle-password" onclick="togglePasswordVisibility('adminPass', 'eyeIconLogin')" aria-label="Toggle password visibility">
+                        <svg id="eyeIconLogin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <button type="button" class="btn" id="loginBtn" onclick="verifyLogin()">LOG IN</button>
+            <button type="button" class="btn btn-secondary" onclick="triggerForgotPassword()">Forgot Password?</button>
+        </div>
+    </div>
+</div>
+
+<!-- RESET PASSWORD VIEW -->
+<div id="resetView" class="view">
+    <div class="login-wrapper">
+        <div class="glass-card">
+            <h2>Reset Password</h2>
+            <p id="resetSubText">Enter your registered admin email to change your password.</p>
+
+            <!-- STEP 1: Email Verification using profiles table -->
+            <div id="emailVerifyStep">
+                <div class="input-group">
+                    <input type="email" id="resetEmail" class="input-field" placeholder="Enter Admin Email" autocomplete="email">
+                </div>
+                <button type="button" class="btn" id="checkEmailBtn" onclick="verifyAdminEmailOnly()">CHECK EMAIL</button>
+                <button type="button" class="btn btn-secondary" onclick="showLoginView()">Back to Log In</button>
+            </div>
+
+            <!-- STEP 2: Create New Password -->
+            <div id="newPasswordStep" style="display: none;">
+                <div class="input-group">
+                    <div class="password-container">
+                        <input type="password" id="newAdminPass" class="input-field" placeholder="New Password (min. 6 chars)" autocomplete="new-password">
+                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility('newAdminPass', 'eyeIconReset')" aria-label="Toggle password visibility">
+                            <svg id="eyeIconReset" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="button" class="btn" id="saveNewPassBtn" onclick="saveNewPasswordDirect()">SAVE NEW PASSWORD</button>
+                <button type="button" class="btn btn-secondary" onclick="backToEmailStep()">Back</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DASHBOARD VIEW -->
+<div id="dashView" class="view">
+    <div class="admin-container">
+        <div class="nav">
+            <div class="nav-title">CSS ADMINISTRATION</div>
+            <div class="burger-wrap">
+                <button class="burger-btn" onclick="toggleBurgerMenu()" aria-label="Open menu">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <line x1="4" y1="6" x2="20" y2="6"></line>
+                        <line x1="4" y1="12" x2="20" y2="12"></line>
+                        <line x1="4" y1="18" x2="20" y2="18"></line>
+                    </svg>
+                </button>
+                <div class="burger-menu" id="burgerMenu">
+                    <button class="burger-item" onclick="openLastLogoutsModal(); toggleBurgerMenu();">Recent Logouts</button>
+                    <div class="burger-divider"></div>
+                    <button class="burger-item danger" onclick="forceLogout()">Logout</button>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('css11')" id="tabCss11">
+                <span class="dot" style="background:#3b82f6;display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;"></span>
+                11 CSS
+            </button>
+            <button class="tab" onclick="switchTab('css12')" id="tabCss12">
+                <span class="dot" style="background:#06b6d4;display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;"></span>
+                12 CSS
+            </button>
+        </div>
+
+        <!-- 11 CSS SECTION -->
+        <div id="css11Section">
+            <div class="section-header">
+                <h2 class="section-title">11 CSS SECTION MONITOR</h2>
+                <span class="section-badge" id="css11Count">0 Active</span>
+            </div>
+            <div class="grid" id="css11Grid"></div>
+            <div id="css11Empty" class="empty-state" style="display:none;">
+                <p style="font-size: 16px; font-weight: 500; margin-bottom: 8px;">No active 11 CSS sessions</p>
+                <p style="font-size: 13px;"></p>
+            </div>
+        </div>
+
+        <!-- 12 CSS SECTION -->
+        <div id="css12Section" style="display:none;">
+            <div class="section-header">
+                <h2 class="section-title">12 CSS SECTION MONITOR</h2>
+                <span class="section-badge" id="css12Count">0 Active</span>
+            </div>
+            <div class="grid" id="css12Grid"></div>
+            <div id="css12Empty" class="empty-state" style="display:none;">
+                <p style="font-size: 16px; font-weight: 500; margin-bottom: 8px;">No active 12 CSS sessions</p>
+                <p style="font-size: 13px;"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- RECENT LOGOUTS MODAL -->
+<div id="lastLogoutsModal" class="view" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; display: none; align-items: center; justify-content: center; backdrop-filter: blur(12px); padding: 20px;">
+    <div class="glass-card" style="max-width: 650px; width: 100%; max-height: 85vh; display: flex; flex-direction: column; text-align: left; padding: 28px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="font-size: 20px; font-weight: 700; color: #fff;">Recently Logged Out Students</h3>
+            <button onclick="closeLastLogoutsModal()" style="background: none; border: none; color: #fff; font-size: 26px; cursor: pointer; padding: 0 4px; line-height: 1;">&times;</button>
+        </div>
+        <p style="font-size: 13px; color: rgba(255,255,255,0.55); margin-bottom: 20px;">List of recently ended sessions including PC number, name, section, LRN, and complete timestamp records.</p>
+        
+        <div id="lastLogoutsList" style="overflow-y: auto; display: flex; flex-direction: column; gap: 12px; max-height: 55vh; padding-right: 4px;">
+            <p style="text-align: center; color: rgba(255,255,255,0.5); padding: 20px;">Loading...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const SUPABASE_URL = "https://evcyswncirajubbzsmkd.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_yDAP_k3896DDgKZhw4hskg_JOtNdF3w";
+    
+    let client = null;
+    try {
+        client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    } catch(e) {
+        console.error("Failed to initialize Supabase:", e);
+    }
+
+    const AUTH_KEY = "admin_logged_in_v1";
+    let burgerOpen = false;
+    let verifiedResetEmail = "";
+
+    window.addEventListener('load', async () => {
+        if (client) {
+            const { data: { session } } = await client.auth.getSession();
+            if (session) {
+                setLoggedIn(true);
+                showDashView();
+                fetchStatus();
+                startRealtime();
+            }
+        }
+    });
+
+    function setLoggedIn(val) {
+        localStorage.setItem(AUTH_KEY, val ? "1" : "0");
+    }
+
+    function showLoginView() {
+        document.getElementById('dashView').classList.remove('active');
+        document.getElementById('resetView').classList.remove('active');
+        document.getElementById('loginView').classList.add('active');
+    }
+
+    function showResetView() {
+        document.getElementById('loginView').classList.remove('active');
+        document.getElementById('dashView').classList.remove('active');
+        document.getElementById('resetView').classList.add('active');
+        
+        document.getElementById('emailVerifyStep').style.display = 'block';
+        document.getElementById('newPasswordStep').style.display = 'none';
+        document.getElementById('resetSubText').textContent = 'Enter your registered admin email to change your password.';
+        if(document.getElementById('resetEmail')) document.getElementById('resetEmail').value = '';
+    }
+
+    function backToEmailStep() {
+        document.getElementById('newPasswordStep').style.display = 'none';
+        document.getElementById('emailVerifyStep').style.display = 'block';
+        document.getElementById('resetSubText').textContent = 'Enter your registered admin email to change your password.';
+        if(document.getElementById('newAdminPass')) document.getElementById('newAdminPass').value = '';
+    }
+
+    function showDashView() {
+        document.getElementById('loginView').classList.remove('active');
+        document.getElementById('resetView').classList.remove('active');
+        document.getElementById('dashView').classList.add('active');
+    }
+
+    function togglePasswordVisibility(fieldId, iconId) {
+        const passwordInput = document.getElementById(fieldId);
+        const eyeIcon = document.getElementById(iconId);
+
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            eyeIcon.innerHTML = `
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+            `;
+        } else {
+            passwordInput.type = 'password';
+            eyeIcon.innerHTML = `
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+            `;
+        }
+    }
+
+    async function verifyLogin() {
+        const emailInput = document.getElementById('adminEmail');
+        const passInput = document.getElementById('adminPass');
+        const loginBtn = document.getElementById('loginBtn');
+        
+        const email = emailInput ? emailInput.value.trim() : '';
+        const pass = passInput ? passInput.value.trim() : '';
+
+        if (!email || !pass) {
+            Swal.fire('Notice', 'Please enter both email and password', 'info');
+            return;
+        }
+
+        loginBtn.disabled = true;
+        loginBtn.textContent = 'VERIFYING...';
+
+        try {
+            const { data, error } = await client.auth.signInWithPassword({
+                email: email,
+                password: pass
+            });
+            
+            if (error) {
+                Swal.fire('Login Failed', error.message, 'error');
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'LOG IN';
+                return;
+            }
+
+            setLoggedIn(true);
+            showDashView();
+            fetchStatus();
+            startRealtime();
+
+        } catch (e) {
+            console.error("Auth error:", e);
+            Swal.fire('Error', 'An unexpected error occurred.', 'error');
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'LOG IN';
+        }
+    }
+
+    function triggerForgotPassword() {
+        showResetView();
+    }
+
+    async function verifyAdminEmailOnly() {
+        const emailInput = document.getElementById('resetEmail');
+        const email = emailInput ? emailInput.value.trim() : '';
+        const checkBtn = document.getElementById('checkEmailBtn');
+
+        if (!email) {
+            Swal.fire('Notice', 'Please enter your admin email address.', 'info');
+            return;
+        }
+
+        checkBtn.disabled = true;
+        checkBtn.textContent = 'CHECKING...';
+
+        try {
+            const { data: existingUser, error: dbError } = await client
+                .from('profiles')
+                .select('email')
+                .eq('email', email)
+                .single();
+
+            if (dbError || !existingUser) {
+                throw new Error('This email address is not registered in our system.');
+            }
+
+            const { error: resetError } = await client.auth.resetPasswordForEmail(email, {
+                redirectTo: window.location.origin,
+            });
+
+            if (resetError) {
+                throw new Error(resetError.message);
+            }
+
+            verifiedResetEmail = email;
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Email Verified!',
+                text: 'This email is registered. You can now set your new password.',
+                timer: 1500,
+                showConfirmButton: false
+            });
+
+            document.getElementById('emailVerifyStep').style.display = 'none';
+            document.getElementById('newPasswordStep').style.display = 'block';
+            document.getElementById('resetSubText').textContent = `Create a new password for: ${email}`;
+
+        } catch (err) {
+            console.error("Email Check Error:", err);
+            Swal.fire('Invalid Email', err.message || 'This email is not registered or the format is invalid.', 'error');
+        } finally {
+            checkBtn.disabled = false;
+            checkBtn.textContent = 'CHECK EMAIL';
+        }
+    }
+
+    async function saveNewPasswordDirect() {
+        const passInput = document.getElementById('newAdminPass');
+        const saveBtn = document.getElementById('saveNewPassBtn');
+
+        const newPassword = passInput ? passInput.value.trim() : '';
+
+        if (!newPassword || newPassword.length < 6) {
+            Swal.fire('Notice', 'The new password must be at least 6 characters long.', 'info');
+            return;
+        }
+
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'UPDATING...';
+
+        try {
+            const { error: updateError } = await client.auth.updateUser({
+                password: newPassword
+            });
+
+            if (updateError) throw updateError;
+
+            await Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: 'Your password has been successfully updated. You may now log in.',
+                confirmButtonText: 'Log In'
+            });
+
+            showLoginView();
+
+        } catch (err) {
+            console.error("Update Password Error:", err);
+            Swal.fire('Error', err.message || 'Failed to update password. Try verifying your email again.', 'error');
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'SAVE NEW PASSWORD';
+        }
+    }
+
+    async function forceLogout() {
+        if (client) {
+            await client.auth.signOut();
+        }
+        setLoggedIn(false);
+        showLoginView();
+        toggleBurgerMenu();
+    }
+
+    function toggleBurgerMenu() {
+        burgerOpen = !burgerOpen;
+        const menu = document.getElementById('burgerMenu');
+        if (menu) {
+            if (burgerOpen) menu.classList.add('show');
+            else menu.classList.remove('show');
+        }
+    }
+
+    async function fetchStatus() {
+        if (!client) return;
+
+        try {
+            const { data, error } = await client
+                .from('active_sessions')
+                .select('*')
+                .is('time_out', null);
+
+            if (error) throw error;
+
+            renderGrids(data || []);
+        } catch (err) {
+            console.error("Error fetching active sessions:", err);
+        }
+    }
+
+    function renderGrids(sessions) {
+        const css11Grid = document.getElementById('css11Grid');
+        const css12Grid = document.getElementById('css12Grid');
+        const css11Empty = document.getElementById('css11Empty');
+        const css12Empty = document.getElementById('css12Empty');
+        const css11Count = document.getElementById('css11Count');
+        const css12Count = document.getElementById('css12Count');
+
+        let css11List = [];
+        let css12List = [];
+
+        sessions.forEach(sess => {
+            const sec = (sess.section || '').toUpperCase();
+            if (sec.includes('11')) {
+                css11List.push(sess);
+            } else if (sec.includes('12')) {
+                css12List.push(sess);
+            } else {
+                css11List.push(sess);
+            }
+        });
+
+        css11Count.textContent = `${css11List.length} Active`;
+        css12Count.textContent = `${css12List.length} Active`;
+
+        if (css11List.length === 0) {
+            css11Grid.innerHTML = '';
+            css11Empty.style.display = 'block';
+        } else {
+            css11Empty.style.display = 'none';
+            css11Grid.innerHTML = css11List.map(s => createCardHTML(s)).join('');
+        }
+
+        if (css12List.length === 0) {
+            css12Grid.innerHTML = '';
+            css12Empty.style.display = 'block';
+        } else {
+            css12Empty.style.display = 'none';
+            css12Grid.innerHTML = css12List.map(s => createCardHTML(s)).join('');
+        }
+    }
+
+    function createCardHTML(sess) {
+        const timeInFormatted = sess.time_in 
+            ? new Date(sess.time_in).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) 
+            : '-';
+
+        return `
+            <div class="card active-student">
+                <h3>PC #${sess.pc_number || '00'}</h3>
+                <div style="font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 4px;">
+                    ${sess.student_name || 'Unknown Student'}
+                </div>
+                <div style="font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 12px;">
+                    LRN: ${sess.lrn || '-'} | Section: ${sess.section || '-'}
+                </div>
+                <div class="meta">
+                    <div class="box">
+                        <div class="k">Time In</div>
+                        <div class="v">${timeInFormatted}</div>
+                    </div>
+                    <div class="box">
+                        <div class="k">Status</div>
+                        <div class="v" style="color: #06b6d4;">Active</div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-danger" onclick="endSession('${sess.pc_number}')" style="margin-top: 14px;">
+                    End Session
+                </button>
+            </div>
+        `;
+    }
+
+    async function endSession(pcNum) {
+        const confirmResult = await Swal.fire({
+            title: 'End Session?',
+            text: `Do you want to log out PC #${pcNum}?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, End Session',
+            cancelButtonText: 'Cancel',
+            background: 'rgba(15, 15, 20, 0.95)',
+            color: '#fff'
+        });
+
+        if (confirmResult.isConfirmed) {
+            try {
+                const { error } = await client
+                    .from('active_sessions')
+                    .update({ time_out: new Date().toISOString() })
+                    .eq('pc_number', pcNum)
+                    .is('time_out', null);
+
+                if (error) throw error;
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Session Ended',
+                    timer: 1200,
+                    showConfirmButton: false
+                });
+
+                fetchStatus();
+            } catch (err) {
+                console.error("Error ending session:", err);
+                Swal.fire('Error', 'Failed to end session.', 'error');
+            }
+        }
+    }
+
+    async function openLastLogoutsModal() {
+        const modal = document.getElementById('lastLogoutsModal');
+        const listContainer = document.getElementById('lastLogoutsList');
+        
+        modal.style.display = 'flex';
+        modal.classList.add('active');
+        
+        listContainer.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5); padding: 20px;">Fetching records...</p>';
+
+        try {
+            const { data, error } = await client
+                .from('active_sessions')
+                .select('*')
+                .not('time_out', 'is', null)
+                .order('time_out', { ascending: false })
+                .limit(20);
+
+            if (error) throw error;
+
+            if (!data || data.length === 0) {
+                listContainer.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5); padding: 20px;">No logout records found yet.</p>';
+                return;
+            }
+
+            let htmlContent = '';
+            data.forEach(item => {
+                let formattedTimeIn = '-';
+                if (item.time_in) {
+                    const dIn = new Date(item.time_in);
+                    if (!isNaN(dIn.getTime())) {
+                        const timeStrIn = dIn.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+                        const dateStrIn = dIn.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+                        formattedTimeIn = `${timeStrIn} · ${dateStrIn}`;
+                    } else {
+                        formattedTimeIn = item.time_in;
+                    }
+                }
+
+                let formattedTimeOut = '-';
+                if (item.time_out) {
+                    const dOut = new Date(item.time_out);
+                    if (!isNaN(dOut.getTime())) {
+                        const timeStrOut = dOut.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+                        const dateStrOut = dOut.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+                        formattedTimeOut = `${timeStrOut} · ${dateStrOut}`;
+                    } else {
+                        formattedTimeOut = item.time_out;
+                    }
+                }
+
+                htmlContent += `
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 12px; font-weight: 700; color: #06b6d4; background: rgba(6, 182, 212, 0.12); padding: 3px 10px; border-radius: 6px;">PC #${item.pc_number}</span>
+                            <span style="font-size: 11px; color: rgba(255,255,255,0.55); background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 6px;">LRN: ${item.lrn || 'N/A'}</span>
+                        </div>
+                        
+                        <div style="font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 4px;">${item.student_name || 'Unknown Student'}</div>
+                        <div style="font-size: 12.5px; color: rgba(255,255,255,0.7); margin-bottom: 10px;">Section: <b>${item.section || 'N/A'}</b></div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11.5px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 8px; color: rgba(255,255,255,0.6);">
+                            <div>Time In: <span style="color: #fff; font-weight: 500;">${formattedTimeIn}</span></div>
+                            <div>Time Out: <span style="color: #fff; font-weight: 500;">${formattedTimeOut}</span></div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            listContainer.innerHTML = htmlContent;
+
+        } catch (err) {
+            console.error("Error fetching last logouts:", err);
+            listContainer.innerHTML = '<p style="text-align: center; color: #ef4444; padding: 20px;">Failed to fetch logout history.</p>';
+        }
+    }
+
+    function closeLastLogoutsModal() {
+        const modal = document.getElementById('lastLogoutsModal');
+        modal.style.display = 'none';
+        modal.classList.remove('active');
+    }
+
+    function startRealtime() {
+        if (!client) return;
+
+        client.removeChannel(client.channel('admin-realtime-monitor'));
+
+        client
+            .channel('admin-realtime-monitor')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'active_sessions' }, payload => {
+                fetchStatus();
+            })
+            .subscribe((status, err) => {
+                if (err) {
+                    console.error("Realtime subscription error:", err);
+                }
+            });
+    }
+
+    function switchTab(section) {
+        const tab11 = document.getElementById('tabCss11');
+        const tab12 = document.getElementById('tabCss12');
+        const sec11 = document.getElementById('css11Section');
+        const sec12 = document.getElementById('css12Section');
+
+        if (section === 'css11') {
+            tab11.classList.add('active');
+            tab12.classList.remove('active');
+            sec11.style.display = 'block';
+            sec12.style.display = 'none';
+        } else {
+            tab12.classList.add('active');
+            tab11.classList.remove('active');
+            sec12.style.display = 'block';
+            sec11.style.display = 'none';
+        }
+    }
+</script>
+</body>
+</html>
