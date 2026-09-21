@@ -340,13 +340,21 @@
                     <label for="lrn">Learner Reference Number</label>
                     <input type="text" id="lrn" inputmode="numeric" placeholder="Enter your 12-digit LRN" maxlength="12" autocomplete="off">
                 </div>
+                <div class="input-group">
+                    <label for="gradeLevel">Grade Level</label>
+                    <select id="gradeLevel" style="width: 100%; padding: 16px 18px; background: rgba(0, 0, 0, 0.28); border: 1px solid var(--border); border-radius: 15px; color: var(--text); font-size: 16px; font-family: inherit; outline: none;">
+                        <option value="">Select Grade Level</option>
+                        <option value="11">Grade 11</option>
+                        <option value="12">Grade 12</option>
+                    </select>
+                </div>
                 <button class="btn" id="signInBtn">Sign In</button>
             </div>
         </section>
     </div>
 
     <script>
-        const client = supabase.createClient("https://kofyybvvzzlcxemwlaqu.supabase.co", "sb_publishable_EXyi06rbFxY4OUV1XRyfjw_omMnlxFN");
+        const client = supabase.createClient("https://evcyswncirajubbzsmkd.supabase.co", "sb_publishable_yDAP_k3896DDgKZhw4hskg_JOtNdF3w");
         const params = new URLSearchParams(window.location.search);
         let targetPC = String(Math.min(parseInt(params.get('pc') || '1', 10) || 1, 10)).padStart(2, '0');
 
@@ -514,8 +522,15 @@
             const lrn = normalizeLRN(document.getElementById('lrn').value);
             document.getElementById('lrn').value = lrn;
 
+            const gradeLevel = document.getElementById('gradeLevel').value;
+
             if (lrn.length !== 12) {
                 Swal.fire({ icon: 'warning', title: 'Oops!', text: 'Please enter a valid 12-digit LRN.', confirmButtonColor: '#0a84ff' });
+                return;
+            }
+
+            if (!gradeLevel) {
+                Swal.fire({ icon: 'warning', title: 'Oops!', text: 'Please select your grade level.', confirmButtonColor: '#0a84ff' });
                 return;
             }
 
@@ -544,17 +559,20 @@
                         pc_number: Number(targetPC),
                         student_id: lrn,
                         student_name: displayName,
+                        grade_level: gradeLevel,
                         time_in: now.toISOString(),
                         time_out: null
                     }], { onConflict: 'pc_number' });
 
                 if (sessionError) throw sessionError;
 
+                const sectionTag = gradeLevel === '11' ? '11 CSS' : '12 CSS';
+
                 document.getElementById('pageTitle').textContent = 'Session Active';
                 document.getElementById('pageSubtitle').textContent = 'You are signed in to this workstation';
 
                 document.getElementById('mainCard').innerHTML = `
-                    <div class="section-tag">12 CSS</div>
+                    <div class="section-tag">${sectionTag}</div>
                     <div class="session-status"><span class="pulse"></span>Session Active</div>
                     <div class="info-grid">
                         <div class="info-item full">
