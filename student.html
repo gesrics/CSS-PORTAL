@@ -42,7 +42,6 @@
             transition: opacity 0.8s var(--ease), filter 0.8s var(--ease), transform 0.8s var(--ease);
         }
 
-        /* Super smooth page load / exit states */
         body.page-loaded {
             opacity: 1;
             filter: blur(0px);
@@ -284,15 +283,14 @@
         let studentCheckInterval = null;
         let html5QrCode = null;
         let currentScannedPc = null;
-        let verifiedStudent = null;
 
         window.addEventListener('load', async () => {
-            // Trigger smooth cinematic fade-in with blur effect on load
             requestAnimationFrame(() => {
                 document.body.classList.add('page-loaded');
             });
 
-            await checkExistingDeviceSession();
+            const hasActiveSession = await checkExistingDeviceSession();
+            if (hasActiveSession) return;
 
             const hasScannedToken = sessionStorage.getItem('verified_qr_scan');
             const scannedPcValue = sessionStorage.getItem('scanned_pc_number');
@@ -317,21 +315,24 @@
                             .from(DB_TABLE)
                             .select('*')
                             .eq('id', savedSessionId)
-                            .is('time_out', null)
                             .maybeSingle();
 
-                        if (data) {
+                        // Siguraduhing may nahanap at HINDI PA tapos ang session (time_out ay null)
+                        if (data && !data.time_out) {
                             showActiveSessionView(data, pcCode);
                             startStudentSessionMonitor(savedSessionId, pcCode);
-                            return;
+                            return true;
                         } else {
+                            // Kung wala na o naka-time out na, tanggalin na sa localStorage
                             localStorage.removeItem(key);
+                            localStorage.removeItem(`active_name_${pcCode}`);
                         }
                     }
                 }
             } catch (err) {
                 console.error("Error checking session:", err);
             }
+            return false;
         }
 
         function startStudentSessionMonitor(sessionId, pcCode) {
@@ -347,6 +348,7 @@
 
                     if (error) throw error;
 
+                    // Kapag nakita na ng monitor na may laman na ang time_out (ibig sabihin inend ng admin)
                     if (data && data.time_out !== null) {
                         clearInterval(studentCheckInterval);
                         localStorage.removeItem(`active_session_id_${pcCode}`);
@@ -357,7 +359,9 @@
                             icon: 'info',
                             title: 'Session Ended',
                             text: 'The administrator has ended your session.',
-                            confirmButtonText: 'OK'
+                            confirmButtonText: 'OK',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false
                         }).then(() => {
                             location.reload();
                         });
@@ -516,7 +520,8 @@
         async function handleSignIn(e) {
             e.preventDefault();
 
-            if (sessionStorage.getItem('verified_qr_scan') !== 'true') {
+            const scannedPcCheck = sessionStorage.getItem('scanned_pc_number') || currentScannedPc;
+            if (!scannedPcCheck) {
                 Swal.fire('Access Denied', 'You must scan the physical station QR code using the camera first.', 'error').then(() => {
                     startStationScanner();
                 });
@@ -558,7 +563,7 @@
 
                 const isoNow = new Date().toISOString();
                 let sessionPayload = {
-                    pc_number: currentScannedPc,
+                    pc_number: scannedPcCheck,
                     student_name: studentName,
                     lrn: lrn,
                     section: section,
@@ -574,19 +579,19 @@
 
                 if (error) throw error;
 
-                const storageSessionKey = `active_session_id_${currentScannedPc}`;
+                const storageSessionKey = `active_session_id_${scannedPcCheck}`;
                 localStorage.setItem(storageSessionKey, data.id);
-                localStorage.setItem(`active_name_${currentScannedPc}`, studentName);
-                sessionStorage.clear();
+                localStorage.setItem(`active_name_${scannedPcCheck}`, studentName);
+                
+                sessionStorage.removeItem('verified_qr_scan');
 
                 Swal.fire({
                     icon: 'success',
                     title: 'Access Granted!',
-                    text: `Welcome, ${studentName}! PC #${currentScannedPc} is now unlocked.`,
+                    text: `Welcome, ${studentName}! PC #${scannedPcCheck} is now unlocked.`,
                     timer: 1400,
                     showConfirmButton: false
                 }).then(() => {
-                    // Super smooth blur transition out to student.html
                     document.body.classList.add('fade-out');
                     setTimeout(() => {
                         window.location.href = 'student.html';
