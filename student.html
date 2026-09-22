@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#050507">
     <title>Student Portal - DNHS</title>
+    <!-- Favicon na JPG (Siguraduhing 'logo.jpg' o 'Logo.jpg' ang pangalan ng file sa folder mo) -->
+    <link rel="icon" type="image/jpeg" href="Logo.jpg">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
@@ -317,13 +319,11 @@
                             .eq('id', savedSessionId)
                             .maybeSingle();
 
-                        // Siguraduhing may nahanap at HINDI PA tapos ang session (time_out ay null)
                         if (data && !data.time_out) {
                             showActiveSessionView(data, pcCode);
                             startStudentSessionMonitor(savedSessionId, pcCode);
                             return true;
                         } else {
-                            // Kung wala na o naka-time out na, tanggalin na sa localStorage
                             localStorage.removeItem(key);
                             localStorage.removeItem(`active_name_${pcCode}`);
                         }
@@ -348,7 +348,6 @@
 
                     if (error) throw error;
 
-                    // Kapag nakita na ng monitor na may laman na ang time_out (ibig sabihin inend ng admin)
                     if (data && data.time_out !== null) {
                         clearInterval(studentCheckInterval);
                         localStorage.removeItem(`active_session_id_${pcCode}`);
