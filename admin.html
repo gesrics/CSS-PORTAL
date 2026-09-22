@@ -4,8 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>DNHS Admin Portal</title>
+    <!-- Favicon na JPG (Palitan ang 'logo.jpg' ng tamang file path o URL ng JPG logo mo) -->
+    <link rel="icon" type="image/jpeg" href="Admin.jpg">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- SheetJS Library para sa Excel Export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -54,6 +58,19 @@
             text-align: center;
             animation: fadeInUp 0.6s ease-out;
         }
+        
+        /* JPG Logo styling sa loob ng Login Card */
+        .portal-logo-img {
+            width: 75px;
+            height: 75px;
+            margin: 0 auto 18px auto;
+            object-fit: cover;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            display: block;
+        }
+
         .glass-card h2 { margin-bottom: 12px; font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
         .glass-card p { font-size: 13.5px; color: rgba(255,255,255,0.6); margin-bottom: 24px; line-height: 1.4; }
 
@@ -221,14 +238,6 @@
         }
         .input-field:focus { border-color: rgba(6, 182, 212, 0.6); }
 
-        .monitor-header { text-align: center; margin-bottom: 30px; }
-        .monitor-header h1 {
-            font-size: 32px; font-weight: 700; letter-spacing: -0.02em;
-            background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 6px;
-        }
-        .monitor-header p { color: rgba(255,255,255,0.5); font-size: 13.5px; font-weight: 500; }
-
         .tabs {
             display: flex; gap: 8px; margin-bottom: 24px;
             border-bottom: 1px solid rgba(255,255,255,0.06);
@@ -270,8 +279,10 @@
 <div id="loginView" class="view active">
     <div class="login-wrapper">
         <div class="glass-card">
-            <h2>Admin Access</h2>
-            <p>Log in to monitor active PC sessions in real-time.</p>
+            <!-- JPG Logo sa taas ng Login -->
+            <img src="Admin.jpg" alt="Logo" class="portal-logo-img">
+            <h2>ADMINSTRATION</h2>
+            <p></p>
 
             <div class="input-group">
                 <input type="email" id="adminEmail" class="input-field" placeholder="Enter Email" autocomplete="email">
@@ -299,10 +310,10 @@
 <div id="resetView" class="view">
     <div class="login-wrapper">
         <div class="glass-card">
+            <img src="logo.jpg" alt="Logo" class="portal-logo-img">
             <h2>Reset Password</h2>
             <p id="resetSubText">Enter your registered admin email to change your password.</p>
 
-            <!-- STEP 1: Email Verification using profiles table -->
             <div id="emailVerifyStep">
                 <div class="input-group">
                     <input type="email" id="resetEmail" class="input-field" placeholder="Enter Admin Email" autocomplete="email">
@@ -311,7 +322,6 @@
                 <button type="button" class="btn btn-secondary" onclick="showLoginView()">Back to Log In</button>
             </div>
 
-            <!-- STEP 2: Create New Password -->
             <div id="newPasswordStep" style="display: none;">
                 <div class="input-group">
                     <div class="password-container">
@@ -353,7 +363,6 @@
             </div>
         </div>
 
-
         <div class="tabs">
             <button class="tab active" onclick="switchTab('css11')" id="tabCss11">
                 <span class="dot" style="background:#3b82f6;display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;"></span>
@@ -374,7 +383,6 @@
             <div class="grid" id="css11Grid"></div>
             <div id="css11Empty" class="empty-state" style="display:none;">
                 <p style="font-size: 16px; font-weight: 500; margin-bottom: 8px;">No active 11 CSS sessions</p>
-                <p style="font-size: 13px;"></p>
             </div>
         </div>
 
@@ -387,7 +395,6 @@
             <div class="grid" id="css12Grid"></div>
             <div id="css12Empty" class="empty-state" style="display:none;">
                 <p style="font-size: 16px; font-weight: 500; margin-bottom: 8px;">No active 12 CSS sessions</p>
-                <p style="font-size: 13px;"></p>
             </div>
         </div>
     </div>
@@ -395,14 +402,18 @@
 
 <!-- RECENT LOGOUTS MODAL -->
 <div id="lastLogoutsModal" class="view" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; display: none; align-items: center; justify-content: center; backdrop-filter: blur(12px); padding: 20px;">
-    <div class="glass-card" style="max-width: 650px; width: 100%; max-height: 85vh; display: flex; flex-direction: column; text-align: left; padding: 28px;">
+    <div class="glass-card" style="max-width: 680px; width: 100%; max-height: 88vh; display: flex; flex-direction: column; text-align: left; padding: 28px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
             <h3 style="font-size: 20px; font-weight: 700; color: #fff;">Recently Logged Out Students</h3>
-            <button onclick="closeLastLogoutsModal()" style="background: none; border: none; color: #fff; font-size: 26px; cursor: pointer; padding: 0 4px; line-height: 1;">&times;</button>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <button onclick="exportLogoutsToExcel()" class="btn" style="padding: 6px 12px; font-size: 12px; width: auto; background: linear-gradient(135deg, #10b981, #059669);">Export Excel</button>
+                <button onclick="clearLogoutHistoryData()" class="btn btn-danger" style="padding: 6px 12px; font-size: 12px; width: auto; box-shadow: none !important;">Clear Data</button>
+                <button onclick="closeLastLogoutsModal()" style="background: none; border: none; color: #fff; font-size: 26px; cursor: pointer; padding: 0 4px; line-height: 1; margin-left: 4px;">&times;</button>
+            </div>
         </div>
         <p style="font-size: 13px; color: rgba(255,255,255,0.55); margin-bottom: 20px;">List of recently ended sessions including PC number, name, section, LRN, and complete timestamp records.</p>
         
-        <div id="lastLogoutsList" style="overflow-y: auto; display: flex; flex-direction: column; gap: 12px; max-height: 55vh; padding-right: 4px;">
+        <div id="lastLogoutsList" style="overflow-y: auto; display: flex; flex-direction: column; gap: 12px; max-height: 52vh; padding-right: 4px;">
             <p style="text-align: center; color: rgba(255,255,255,0.5); padding: 20px;">Loading...</p>
         </div>
     </div>
@@ -421,7 +432,7 @@
 
     const AUTH_KEY = "admin_logged_in_v1";
     let burgerOpen = false;
-    let verifiedResetEmail = "";
+    let cachedLogoutsData = [];
 
     window.addEventListener('load', async () => {
         if (client) {
@@ -566,8 +577,6 @@
                 throw new Error(resetError.message);
             }
 
-            verifiedResetEmail = email;
-
             Swal.fire({
                 icon: 'success',
                 title: 'Email Verified!',
@@ -582,7 +591,7 @@
 
         } catch (err) {
             console.error("Email Check Error:", err);
-            Swal.fire('Invalid Email', err.message || 'This email is not registered or the format is invalid.', 'error');
+            Swal.fire('Invalid Email', err.message || 'This email is not registered.', 'error');
         } finally {
             checkBtn.disabled = false;
             checkBtn.textContent = 'CHECK EMAIL';
@@ -592,7 +601,6 @@
     async function saveNewPasswordDirect() {
         const passInput = document.getElementById('newAdminPass');
         const saveBtn = document.getElementById('saveNewPassBtn');
-
         const newPassword = passInput ? passInput.value.trim() : '';
 
         if (!newPassword || newPassword.length < 6) {
@@ -613,7 +621,7 @@
             await Swal.fire({
                 icon: 'success',
                 title: 'Success!',
-                text: 'Your password has been successfully updated. You may now log in.',
+                text: 'Your password has been successfully updated.',
                 confirmButtonText: 'Log In'
             });
 
@@ -621,7 +629,7 @@
 
         } catch (err) {
             console.error("Update Password Error:", err);
-            Swal.fire('Error', err.message || 'Failed to update password. Try verifying your email again.', 'error');
+            Swal.fire('Error', err.message || 'Failed to update password.', 'error');
         } finally {
             saveBtn.disabled = false;
             saveBtn.textContent = 'SAVE NEW PASSWORD';
@@ -788,38 +796,37 @@
                 .select('*')
                 .not('time_out', 'is', null)
                 .order('time_out', { ascending: false })
-                .limit(20);
+                .limit(50);
 
             if (error) throw error;
 
-            if (!data || data.length === 0) {
+            cachedLogoutsData = data || [];
+
+            if (cachedLogoutsData.length === 0) {
                 listContainer.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5); padding: 20px;">No logout records found yet.</p>';
                 return;
             }
 
             let htmlContent = '';
-            data.forEach(item => {
+            cachedLogoutsData.forEach(item => {
                 let formattedTimeIn = '-';
+                let formattedTimeOut = '-';
+
                 if (item.time_in) {
                     const dIn = new Date(item.time_in);
                     if (!isNaN(dIn.getTime())) {
                         const timeStrIn = dIn.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
                         const dateStrIn = dIn.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
                         formattedTimeIn = `${timeStrIn} · ${dateStrIn}`;
-                    } else {
-                        formattedTimeIn = item.time_in;
                     }
                 }
 
-                let formattedTimeOut = '-';
                 if (item.time_out) {
                     const dOut = new Date(item.time_out);
                     if (!isNaN(dOut.getTime())) {
                         const timeStrOut = dOut.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
                         const dateStrOut = dOut.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
                         formattedTimeOut = `${timeStrOut} · ${dateStrOut}`;
-                    } else {
-                        formattedTimeOut = item.time_out;
                     }
                 }
 
@@ -846,6 +853,94 @@
         } catch (err) {
             console.error("Error fetching last logouts:", err);
             listContainer.innerHTML = '<p style="text-align: center; color: #ef4444; padding: 20px;">Failed to fetch logout history.</p>';
+        }
+    }
+
+    function exportLogoutsToExcel() {
+        if (!cachedLogoutsData || cachedLogoutsData.length === 0) {
+            Swal.fire('Notice', 'No data available to export.', 'info');
+            return;
+        }
+
+        const excelData = cachedLogoutsData.map(item => {
+            let timeInStr = '';
+            let timeOutStr = '';
+            let dateStr = '';
+
+            if (item.time_in) {
+                const dIn = new Date(item.time_in);
+                if (!isNaN(dIn.getTime())) {
+                    timeInStr = dIn.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+                    dateStr = dIn.toLocaleDateString([], { year: 'numeric', month: '2-digit', day: '2-digit' });
+                }
+            }
+
+            if (item.time_out) {
+                const dOut = new Date(item.time_out);
+                if (!isNaN(dOut.getTime())) {
+                    timeOutStr = dOut.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+                }
+            }
+
+            return {
+                "NAME": item.student_name || 'Unknown',
+                "LRN": item.lrn || '',
+                "PC USED": `PC #${item.pc_number || ''}`,
+                "TIME IN": timeInStr,
+                "TIME OUT": timeOutStr,
+                "DATE WITH YEAR": dateStr
+            };
+        });
+
+        const worksheet = XLSX.utils.json_to_sheet(excelData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Recent Logouts");
+
+        XLSX.writeFile(workbook, `DNHS_Recent_Logouts_${new Date().toISOString().slice(0,10)}.xlsx`);
+    }
+
+    async function clearLogoutHistoryData() {
+        if (!cachedLogoutsData || cachedLogoutsData.length === 0) {
+            Swal.fire('Notice', 'No logout records to clear.', 'info');
+            return;
+        }
+
+        const confirmResult = await Swal.fire({
+            title: 'Clear Logout History?',
+            text: 'This will permanently delete all recently logged-out student records from the database. Are you sure?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, Clear Data',
+            cancelButtonText: 'Cancel',
+            background: 'rgba(15, 15, 20, 0.95)',
+            color: '#fff',
+            confirmButtonColor: '#ef4444'
+        });
+
+        if (confirmResult.isConfirmed) {
+            try {
+                const { error } = await client
+                    .from('active_sessions')
+                    .delete()
+                    .not('time_out', 'is', null);
+
+                if (error) throw error;
+
+                cachedLogoutsData = [];
+                document.getElementById('lastLogoutsList').innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5); padding: 20px;">No logout records found yet.</p>';
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Cleared!',
+                    text: 'Logout history has been cleared successfully.',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
+            } catch (err) {
+                console.error("Error clearing logout history:", err);
+                Swal.fire('Error', 'Failed to clear logout history data.', 'error');
+            }
         }
     }
 
