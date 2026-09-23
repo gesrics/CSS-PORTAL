@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Approved</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 0;
+            background: #090d16;
+            color: #f8fafc;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 40px 30px;
+            border-radius: 24px;
+            text-align: center;
+            max-width: 380px;
+            width: 90%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+        }
+        .icon-wrapper {
+            width: 64px;
+            height: 64px;
+            background: rgba(14, 165, 233, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px auto;
+            color: #38bdf8;
+            font-size: 32px;
+        }
+        h1 { color: #ffffff; font-size: 22px; font-weight: 600; margin: 0 0 10px 0; }
+        p { color: #94a3b8; font-size: 14px; line-height: 1.6; margin: 0; }
+        .email-badge {
+            display: inline-block;
+            background: rgba(56, 189, 248, 0.1);
+            color: #38bdf8;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-top: 8px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon-wrapper">&#10003;</div>
+        <h1>Admin Approved</h1>
+        <p>Successfully verified access for:</p>
+        <div id="email-display" class="email-badge">Loading...</div>
+        <p style="margin-top: 20px; font-size: 13px; color: #64748b;">You can now safely close this tab.</p>
+    </div>
+
+    <script>
+        // Kunin ang email mula sa URL parameters para ipakita sa card
+        const params = new URLSearchParams(window.location.search);
+        const email = params.get('email');
+        if (email) {
+            document.getElementById('email-display').textContent = email;
+        }
+    </script>
+</body>
+</html>
