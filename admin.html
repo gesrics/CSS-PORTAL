@@ -347,17 +347,19 @@
     <div class="login-wrapper">
         <div class="glass-card">
             <img src="Admin.jpg" alt="Logo" class="portal-logo-img">
-            <h2>Reset Password</h2>
-            <p id="resetSubText">Enter your registered admin email to change your password.</p>
+            <h2 id="resetTitle">Reset Password</h2>
+            <p id="resetSubText">Enter your registered admin email to receive a password reset link.</p>
 
+            <!-- STEP 1: REQUEST RESET LINK -->
             <div id="emailVerifyStep">
                 <div class="input-group">
                     <input type="email" id="resetEmail" class="input-field" placeholder="Enter Admin Email" autocomplete="email">
                 </div>
-                <button type="button" class="btn" id="checkEmailBtn" onclick="verifyAdminEmailOnly()">CHECK EMAIL</button>
+                <button type="button" class="btn" id="sendResetBtn" onclick="sendPasswordResetEmail()">SEND RESET LINK</button>
                 <button type="button" class="btn btn-secondary" onclick="showLoginView()">Back to Log In</button>
             </div>
 
+            <!-- STEP 2: SET NEW PASSWORD (Pag-click ng link mula sa email) -->
             <div id="newPasswordStep" style="display: none;">
                 <div class="input-group">
                     <div class="password-container">
@@ -371,8 +373,8 @@
                     </div>
                 </div>
 
-                <button type="button" class="btn" id="saveNewPassBtn" onclick="saveNewPasswordDirect()">SAVE NEW PASSWORD</button>
-                <button type="button" class="btn btn-secondary" onclick="backToEmailStep()">Back</button>
+                <button type="button" class="btn" id="saveNewPassBtn" onclick="saveNewPassword()">SAVE NEW PASSWORD</button>
+                <button type="button" class="btn btn-secondary" onclick="showLoginView()">Back to Log In</button>
             </div>
         </div>
     </div>
@@ -472,6 +474,19 @@
 
     window.addEventListener('load', async () => {
         if (client) {
+            // Suriin kung may kasalukuyang session o kaya ay nanggaling sa Password Reset link
+            const hash = window.location.hash;
+            if (hash && hash.includes('type=recovery')) {
+                // Nakatanggap ng recovery token galing sa email, ipakita ang new password form
+                document.getElementById('loginView').classList.remove('active');
+                document.getElementById('resetView').classList.add('active');
+                document.getElementById('emailVerifyStep').style.display = 'none';
+                document.getElementById('newPasswordStep').style.display = 'block';
+                document.getElementById('resetTitle').textContent = 'Set New Password';
+                document.getElementById('resetSubText').textContent = 'Please enter your new secure password.';
+                return;
+            }
+
             const { data: { session } } = await client.auth.getSession();
             if (session) {
                 const email = session.user.email;
@@ -509,7 +524,7 @@
         if(document.getElementById('regPass')) document.getElementById('regPass').value = '';
     }
 
-    function showResetView() {
+    function triggerForgotPassword() {
         document.getElementById('loginView').classList.remove('active');
         document.getElementById('dashView').classList.remove('active');
         document.getElementById('registerView').classList.remove('active');
@@ -517,15 +532,9 @@
         
         document.getElementById('emailVerifyStep').style.display = 'block';
         document.getElementById('newPasswordStep').style.display = 'none';
-        document.getElementById('resetSubText').textContent = 'Enter your registered admin email to change your password.';
+        document.getElementById('resetTitle').textContent = 'Reset Password';
+        document.getElementById('resetSubText').textContent = 'Enter your registered admin email to receive a password reset link.';
         if(document.getElementById('resetEmail')) document.getElementById('resetEmail').value = '';
-    }
-
-    function backToEmailStep() {
-        document.getElementById('newPasswordStep').style.display = 'none';
-        document.getElementById('emailVerifyStep').style.display = 'block';
-        document.getElementById('resetSubText').textContent = 'Enter your registered admin email to change your password.';
-        if(document.getElementById('newAdminPass')) document.getElementById('newAdminPass').value = '';
     }
 
     function showDashView() {
@@ -672,56 +681,47 @@
         }
     }
 
-    function triggerForgotPassword() {
-        showResetView();
-    }
-
-    async function verifyAdminEmailOnly() {
+    // Pagpapadala ng opisyal at secure na reset link sa email ng admin
+    async function sendPasswordResetEmail() {
         const emailInput = document.getElementById('resetEmail');
         const email = emailInput ? emailInput.value.trim() : '';
-        const checkBtn = document.getElementById('checkEmailBtn');
+        const sendBtn = document.getElementById('sendResetBtn');
 
         if (!email) {
             Swal.fire('Notice', 'Please enter your admin email address.', 'info');
             return;
         }
 
-        checkBtn.disabled = true;
-        checkBtn.textContent = 'CHECKING...';
+        sendBtn.disabled = true;
+        sendBtn.textContent = 'SENDING LINK...';
 
         try {
-            const { data: existingUser, error: dbError } = await client
-                .from('profiles')
-                .select('email')
-                .eq('email', email)
-                .single();
-
-            if (dbError || !existingUser) {
-                throw new Error('This email address is not registered in our system.');
-            }
-
-            Swal.fire({
-                icon: 'success',
-                title: 'Email Verified!',
-                text: 'This email is registered. You can now set your new password.',
-                timer: 1500,
-                showConfirmButton: false
+            const { error } = await client.auth.resetPasswordForEmail(email, {
+                redirectTo: window.location.href.split('#')[0] // I-redirect pabalik dito pagka-click ng link sa email
             });
 
-            document.getElementById('emailVerifyStep').style.display = 'none';
-            document.getElementById('newPasswordStep').style.display = 'block';
-            document.getElementById('resetSubText').textContent = `Create a new password for: ${email}`;
+            if (error) throw error;
+
+            await Swal.fire({
+                icon: 'success',
+                title: 'Reset Link Sent!',
+                text: 'Please check your email inbox for the password reset link.',
+                confirmButtonText: 'OK'
+            });
+
+            showLoginView();
 
         } catch (err) {
-            console.error("Email Check Error:", err);
-            Swal.fire('Invalid Email', err.message || 'This email is not registered.', 'error');
+            console.error("Reset Email Error:", err);
+            Swal.fire('Error', err.message || 'Failed to send reset link.', 'error');
         } finally {
-            checkBtn.disabled = false;
-            checkBtn.textContent = 'CHECK EMAIL';
+            sendBtn.disabled = false;
+            sendBtn.textContent = 'SEND RESET LINK';
         }
     }
 
-    async function saveNewPasswordDirect() {
+    // Pag-save ng bagong password matapos mag-click mula sa email link
+    async function saveNewPassword() {
         const passInput = document.getElementById('newAdminPass');
         const saveBtn = document.getElementById('saveNewPassBtn');
         const newPassword = passInput ? passInput.value.trim() : '';
@@ -744,15 +744,17 @@
             await Swal.fire({
                 icon: 'success',
                 title: 'Success!',
-                text: 'Your password has been successfully updated.',
+                text: 'Your password has been successfully updated. You can now log in.',
                 confirmButtonText: 'Log In'
             });
 
+            // Linisin ang URL hash at bumalik sa login
+            window.location.hash = '';
             showLoginView();
 
         } catch (err) {
             console.error("Update Password Error:", err);
-            Swal.fire('Error', err.message || 'Failed to update password.', 'error');
+            Swal.fire('Error', err.message || 'Failed to update password. Link might be expired.', 'error');
         } finally {
             saveBtn.disabled = false;
             saveBtn.textContent = 'SAVE NEW PASSWORD';
