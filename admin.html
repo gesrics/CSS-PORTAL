@@ -474,15 +474,12 @@
 
     window.addEventListener('load', async () => {
         if (client) {
+            // Suriin kung may kasalukuyang session o kaya ay nanggaling sa Password Reset link
             const hash = window.location.hash;
-            
-            // Suriin kung nagmula sa EmailJS password reset link ang pagpasok
             if (hash && hash.includes('type=recovery')) {
+                // Nakatanggap ng recovery token galing sa email, ipakita ang new password form
                 document.getElementById('loginView').classList.remove('active');
-                document.getElementById('dashView').classList.remove('active');
-                document.getElementById('registerView').classList.remove('active');
                 document.getElementById('resetView').classList.add('active');
-                
                 document.getElementById('emailVerifyStep').style.display = 'none';
                 document.getElementById('newPasswordStep').style.display = 'block';
                 document.getElementById('resetTitle').textContent = 'Set New Password';
@@ -684,7 +681,7 @@
         }
     }
 
-    // Pagpapadala ng reset link gamit ang EmailJS template kasama ang iyong bagong design
+    // Pagpapadala ng opisyal at secure na reset link sa email ng admin
     async function sendPasswordResetEmail() {
         const emailInput = document.getElementById('resetEmail');
         const email = emailInput ? emailInput.value.trim() : '';
@@ -699,26 +696,11 @@
         sendBtn.textContent = 'SENDING LINK...';
 
         try {
-            // I-verify muna kung rehistradong admin ang email
-            const { data: profile, error: profileErr } = await client
-                .from('profiles')
-                .select('email')
-                .eq('email', email)
-                .single();
-
-            if (profileErr || !profile) {
-                throw new Error('This email address is not registered as an admin.');
-            }
-
-            // Bumuo ng recovery URL kasama ang hash flag
-            const resetLink = window.location.href.split('#')[0] + '#type=recovery&email=' + encodeURIComponent(email);
-
-            // Ipadala ang email gamit ang EmailJS
-            await emailjs.send("service_j11yhis", "template_lcy04pm", {
-                to_email: email,
-                reset_link: resetLink,
-                message: `You requested a password reset. Click this link to choose a new password: ${resetLink}`
+            const { error } = await client.auth.resetPasswordForEmail(email, {
+                redirectTo: window.location.href.split('#')[0] // I-redirect pabalik dito pagka-click ng link sa email
             });
+
+            if (error) throw error;
 
             await Swal.fire({
                 icon: 'success',
@@ -730,7 +712,7 @@
             showLoginView();
 
         } catch (err) {
-            console.error("EmailJS Reset Error:", err);
+            console.error("Reset Email Error:", err);
             Swal.fire('Error', err.message || 'Failed to send reset link.', 'error');
         } finally {
             sendBtn.disabled = false;
@@ -738,7 +720,7 @@
         }
     }
 
-    // Pag-save ng bagong password gamit ang Supabase updateUser
+    // Pag-save ng bagong password matapos mag-click mula sa email link
     async function saveNewPassword() {
         const passInput = document.getElementById('newAdminPass');
         const saveBtn = document.getElementById('saveNewPassBtn');
@@ -766,6 +748,7 @@
                 confirmButtonText: 'Log In'
             });
 
+            // Linisin ang URL hash at bumalik sa login
             window.location.hash = '';
             showLoginView();
 
